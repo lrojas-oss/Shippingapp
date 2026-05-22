@@ -188,7 +188,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="modal-sub">Firebase (datos en tiempo real) + Google Sheets (catálogos)</div>
     <div class="modal-note">
       <strong>Sheets ID:</strong> la parte de la URL entre /d/ y /edit<br>
-      <strong>Firebase:</strong> Consola → Configuración del proyecto → Tu app web → SDK config
+      <strong>Firebase:</strong> Consola → Configuración del proyecto → Tu app web → SDK config<br>
+      <em>Si ves 'modo local', ingresa tus credenciales de Firebase desde la Consola → Configuración del proyecto → Tu app web → SDK config</em>
     </div>
     <div class="modal-field"><label>Google Sheets ID</label>
       <input id="cfg-sheets" placeholder="1ZNv4CsC2L40BC8ye6SvGap4cKOv9hcU13O6Gapxry_8"/></div>
@@ -200,6 +201,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <input id="cfg-auth" placeholder="harvest-tek-shipping.firebaseapp.com"/></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeConfig()">Cancelar</button>
+      <button class="btn btn-outline" id="btn-test-conn" onclick="testFBConn()">Probar conexión</button>
       <button class="btn btn-primary" onclick="saveConfig()">Guardar y conectar</button>
     </div>
   </div>
@@ -335,10 +337,15 @@ const FALLBACK = {
   destinos:[]
 };
 
+const _dbt={};
+function debounce(key,fn,ms=600){clearTimeout(_dbt[key]);_dbt[key]=setTimeout(fn,ms);}
+function debouncedUpdOF(cid,oi,field,val){debounce(cid+'-'+oi+'-'+field,()=>updOF(cid,oi,field,val));}
+function debouncedUpdF(id,field,val){debounce(id+'-'+field,()=>updF(id,field,val));}
+
 function today(){ return new Date().toISOString().slice(0,10); }
 function yesterday(){ const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10); }
 function fmtD(s){ if(!s)return'–';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y; }
-function nowTime(){ return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
+function nowTime(){ return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 
 // ── CONFIG ──
 function openConfig(){
@@ -357,6 +364,32 @@ function saveConfig(){
   localStorage.setItem('htm_cfg',JSON.stringify(CFG));
   closeConfig(); initFB(); toast('Configuración guardada','success');
 }
+async function testFBConn(){
+  const apiKey=document.getElementById('cfg-apikey').value.trim();
+  const project=document.getElementById('cfg-project').value.trim();
+  const auth=document.getElementById('cfg-auth').value.trim();
+  const btn=document.getElementById('btn-test-conn');
+  if(!apiKey||!project){toast('Ingresa API Key y Project ID primero','error');return;}
+  btn.textContent='Probando...';btn.disabled=true;
+  try{
+    const name='_ping_'+Date.now();
+    const tApp=firebase.initializeApp({apiKey,authDomain:auth||(project+'.firebaseapp.com'),projectId:project},name);
+    const tDb=tApp.firestore();
+    await tDb.collection('_ping').limit(1).get();
+    await tApp.delete();
+    toast('Conexión a Firebase exitosa ✓','success');
+    btn.textContent='✓ Conexión OK';
+  }catch(e){
+    toast('Error: '+e.message,'error');
+    btn.textContent='Reintentar';
+  }
+  btn.disabled=false;
+}
+function updTimeDisplay(type,id,val){
+  const b=document.getElementById('btn-'+type+'-'+id);
+  if(!b||!b.classList.contains('done'))return;
+  b.textContent=type==='fac'?'✓ Sí — '+val:'✓ Despachado — '+val;
+}
 
 // ── FIREBASE ──
 function initFB(){
@@ -369,11 +402,19 @@ function startFB(){
   try{
     firebase.initializeApp({apiKey:CFG.apiKey,authDomain:CFG.auth||(CFG.project+'.firebaseapp.com'),projectId:CFG.project});
     db=firebase.firestore();
-    updateConnStatus('Firebase conectado ✓');
+    updateConnStatus('Verificando Firebase...');
+    db.collection('_ping').limit(1).get()
+      .then(()=>updateConnStatus('Firebase conectado ✓'))
+      .catch(e=>{db=null;updateConnStatus('Error Firebase: '+e.message);});
   }catch(e){ db=null; updateConnStatus('Error Firebase: '+e.message); }
 }
 function updateConnStatus(msg){
-  ['conn-status','sup-conn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=msg;});
+  const isOk=msg.includes('✓');
+  const color=isOk?'var(--green)':'var(--red)';
+  ['conn-status','sup-conn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML=`<span style="color:${color};font-weight:500">● ${msg}</span>`;
+  });
 }
 
 // ── CATÁLOGOS ──
@@ -515,7 +556,7 @@ function mkCardBody(c){
   return`<div style="max-width:800px">
     <div class="seccion-label">Sección 1 — Programación</div>
     <div id="ords-${c.id}">${ords.map((o,i)=>mkOrden(c.id,i,o,ords.length)).join('')}</div>
-    ${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${c.id}')">+ Agregar orden</button>`:''}
+    <div id="add-ord-${c.id}">${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${c.id}')">+ Agregar orden</button>`:''}</div>
     <div class="field-grid field-grid-2" style="margin-top:10px">
       <div class="field-group"><label>Transportista</label>
         <select onchange="updF('${c.id}','transportista',this.value)">
@@ -547,13 +588,15 @@ function mkCardBody(c){
     </div>
     <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
       <div class="field-group"><label>Facturado y reportado</label>
-        <div class="action-btns">
+        <div class="cruce-row">
           <button class="action-btn${c.facturado?' done':''}" id="btn-fac-${c.id}" onclick="toggleFac('${c.id}',this)">
-            ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button></div></div>
+            ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button>
+          <input type="time" id="fac-t-${c.id}" value="${c.facturadoAt||''}" onchange="updF('${c.id}','facturadoAt',this.value);updTimeDisplay('fac','${c.id}',this.value)" title="Hora facturado"/></div></div>
       <div class="field-group"><label>Estatus Despacho</label>
-        <div class="action-btns">
+        <div class="cruce-row">
           <button class="action-btn${c.despachado?' done':''}" id="btn-des-${c.id}" onclick="toggleDes('${c.id}',this)">
-            ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button></div></div>
+            ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button>
+          <input type="time" id="des-t-${c.id}" value="${c.horaDespacho||''}" onchange="updF('${c.id}','horaDespacho',this.value);updTimeDisplay('des','${c.id}',this.value)" title="Hora despacho"/></div></div>
     </div>
     <div class="field-group" style="margin-top:10px"><label>Cruce de aduana</label>
       <div class="cruce-row">
@@ -562,6 +605,11 @@ function mkCardBody(c){
         <input type="time" id="cru-t-${c.id}" value="${c.horaCruce||''}" onchange="updF('${c.id}','horaCruce',this.value)" title="Hora de cruce"/>
         ${c.horaCruce?`<span class="status-pill status-cruzado">${c.horaCruce}</span>`:''}
       </div></div>
+    <div class="seccion-divider"></div>
+    <div class="seccion-label">Sección 4 — Notas</div>
+    <div class="field-group">
+      <textarea id="notas-${c.id}" rows="3" style="border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text);width:100%;resize:vertical;line-height:1.5" placeholder="Notas, observaciones, incidencias..." oninput="debouncedUpdF('${c.id}','notas',this.value)">${c.notas||''}</textarea>
+    </div>
     <div class="save-bar" style="margin-top:12px;padding:8px 0 0;background:transparent">
       <span class="save-status saved" id="ss-${c.id}">✓ Sincronizado</span>
       <button class="btn btn-outline btn-sm" onclick="toggleDetail('${c.id}')">Cerrar ↑</button>
@@ -661,7 +709,7 @@ function mkOrden(cid,oi,o,total){
           ${CAT.clientes.map(c=>`<option value="${c}"${c===cli?' selected':''}>${c}</option>`).join('')}
         </select></div>
       <div class="field-group"><label>No. QT</label>
-        <input type="text" value="${o.qt||''}" placeholder="QT-0000" onchange="updOF('${cid}',${oi},'qt',this.value)"/></div>
+        <input type="text" value="${o.qt||''}" placeholder="QT-0000" oninput="debouncedUpdOF('${cid}',${oi},'qt',this.value)"/></div>
     </div>
     <div id="pp-${cid}-${oi}">
       ${prods.map((p,pi)=>mkProd(cid,oi,pi,p,cli,prods.length)).join('')}
@@ -723,7 +771,7 @@ async function addCamion(){
   const c={fecha,ordenes:[{qt:'',cliente:'',productos:[{producto:'',tarimas:''}],destino:'',fechaEntrega:''}],
     transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
     ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
-    cruceListo:false,horaCruce:'',createdAt:new Date().toISOString()};
+    cruceListo:false,horaCruce:'',notas:'',createdAt:new Date().toISOString()};
   if(db){ await db.collection('programas').add(c); }
   else {
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
@@ -771,23 +819,40 @@ function cambiarRol(){
 }
 
 async function toggleFac(id,btn){
-  if(btn.classList.contains('done'))return;
-  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Sí — '+t;
-  await updF(id,'facturado',true); await updF(id,'facturadoAt',t);
+  if(btn.classList.contains('done')){
+    btn.classList.remove('done');btn.textContent='Pendiente';
+    const fi=document.getElementById('fac-t-'+id);if(fi)fi.value='';
+    await updF(id,'facturado',false);await updF(id,'facturadoAt','');
+  } else {
+    const t=document.getElementById('fac-t-'+id)?.value||nowTime();
+    btn.classList.add('done');btn.textContent='✓ Sí — '+t;
+    await updF(id,'facturado',true);await updF(id,'facturadoAt',t);
+  }
 }
 
 async function toggleDes(id,btn){
-  if(btn.classList.contains('done'))return;
-  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Despachado — '+t;
-  await updF(id,'despachado',true); await updF(id,'horaDespacho',t);
+  if(btn.classList.contains('done')){
+    btn.classList.remove('done');btn.textContent='Pendiente';
+    const di=document.getElementById('des-t-'+id);if(di)di.value='';
+    await updF(id,'despachado',false);await updF(id,'horaDespacho','');
+  } else {
+    const t=document.getElementById('des-t-'+id)?.value||nowTime();
+    btn.classList.add('done');btn.textContent='✓ Despachado — '+t;
+    await updF(id,'despachado',true);await updF(id,'horaDespacho',t);
+  }
 }
 
 async function toggleCruce(id,btn){
-  if(btn.classList.contains('done'))return;
-  const ti=document.getElementById('cru-t-'+id);
-  const t=ti?.value||nowTime();
-  btn.classList.add('done'); btn.textContent='✓ Cruce listo';
-  await updF(id,'cruceListo',true); await updF(id,'horaCruce',t);
+  if(btn.classList.contains('done')){
+    btn.classList.remove('done');btn.textContent='Marcar cruce listo';
+    const ti=document.getElementById('cru-t-'+id);if(ti)ti.value='';
+    await updF(id,'cruceListo',false);await updF(id,'horaCruce','');
+  } else {
+    const ti=document.getElementById('cru-t-'+id);
+    const t=ti?.value||nowTime();
+    btn.classList.add('done');btn.textContent='✓ Cruce listo';
+    await updF(id,'cruceListo',true);await updF(id,'horaCruce',t);
+  }
 }
 
 async function getOrdenes(id){
@@ -802,7 +867,11 @@ async function setOrdenes(id,ords){
     const fecha=document.getElementById('sup-fecha').value;
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
     const i=a.findIndex(c=>c.id===id); if(i>=0){a[i].ordenes=ords;localStorage.setItem(k,JSON.stringify(a));}
-    loadPrograma();
+    const ordsDiv=document.getElementById('ords-'+id);
+    if(ordsDiv) ordsDiv.innerHTML=ords.map((o,oi)=>mkOrden(id,oi,o,ords.length)).join('');
+    const addDiv=document.getElementById('add-ord-'+id);
+    if(addDiv) addDiv.innerHTML=ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${id}')">+ Agregar orden</button>`:'';
+    setSS(id,'saved');
   }
 }
 
