@@ -1,0 +1,19 @@
+{
+  "name": "Harvest Tek Shipping",
+  "short_name": "HTM Shipping",
+  "description": "Control de despacho y programa de camiones — Harvest Tek México",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f3",
+  "theme_color": "#2d6a4f",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

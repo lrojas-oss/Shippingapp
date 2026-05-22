@@ -4,6 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Harvest Tek México — Shipping</title>
+<meta name="theme-color" content="#2d6a4f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="HTM Shipping"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -330,6 +336,11 @@ let db = null, role = null, unsub = null;
 let CAT = { clientes:[], productos:{}, transportistas:[], destinos:[] };
 let openPanelId = null; // tracks which camion detail is expanded
 const SHEETS_DEFAULT = '1ZNv4CsC2L40BC8ye6SvGap4cKOv9hcU13O6Gapxry_8';
+const FIREBASE_DEFAULT = {
+  apiKey:"AIzaSyCy_vgYncZv48qTf5sPXgZeRdOSu_CgUE8",
+  auth:"shipping-e1aa4.firebaseapp.com",
+  project:"shipping-e1aa4"
+};
 const FALLBACK = {
   clientes:['Baloian','Boskovich','Braga Fresh','Family Fresh Farms','Fresh Express','Fresh Point','Fresh Truck Farms','Freshway','Fruvemex','Ocean Mist Farms','Taylor Farms'],
   productos:{'Baloian':["BAL - Pam Pak 48's","BAL - Pam Pak Hearts 12x3","BAL - Romaine 24s (FFF)","BAL - Cauliflower Wrap"],'Boskovich':["BSK - Bin CFR","BSK - Bin CFR Total"],'Braga Fresh':["BRG - Broccoli Floret RPC's","BRG - Naked Cauliflower","BRG - Organic Romaine CFR","BRG - Romaine 24's","BRG - Romaine CFR"],'Family Fresh Farms':["BAL - Pam Pak 48's","FFF - Cauliflower Wrap","FFF - Hearts 12x3","FFF - Romaine 24s"],'Fresh Express':["FEX - Bin CFR","FEX - Bin CFR Total","FEX - Hearts 12x3","FEX - Hearts 12x3 CANADA","FEX - Hearts 12x3 Total","FEX - Hearts Giant Eagle 12x3","FEX - Hearts NoBIU 12x3","FEX - Hearts Organic 12x3"],'Fresh Point':["FSP - Bin CFR","FSP - Romaine 24s"],'Fresh Truck Farms':["FTF - Cauliflower RPC (Test)"],'Freshway':["FEX - Bin CFR","FWY - Bin CFR"],'Fruvemex':["FMX - Bins Naked Cauliflower"],'Ocean Mist Farms':["OMF - Broccoli Crowns","OMF - Broccoli Crowns 64's","OMF - Broccoli Floret RPC's","OMF - Cauliflower","OMF - Hearts 12x3 #1 WOOD","OMF - Hearts 12x3 CHEP","OMF - Hearts 8x3 CHEP","OMF - Hearts 8x3 CHEP Total"],'Taylor Farms':["TAY - Cauliflower Naked","TAY - Romaine RPC","TAY - Romaine RPC Organic","TAY - Snap pea RPC 55"]},
@@ -393,6 +404,9 @@ function updTimeDisplay(type,id,val){
 
 // ── FIREBASE ──
 function initFB(){
+  if(!CFG.apiKey) CFG.apiKey=FIREBASE_DEFAULT.apiKey;
+  if(!CFG.project) CFG.project=FIREBASE_DEFAULT.project;
+  if(!CFG.auth) CFG.auth=FIREBASE_DEFAULT.auth;
   if(!CFG.apiKey||!CFG.project){ updateConnStatus('Sin Firebase — modo local'); return; }
   try{
     if(firebase.apps.length){ firebase.apps[0].delete().then(startFB); }else{ startFB(); }
@@ -1015,6 +1029,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   initFB(); hideLoad(); setDateLabels();
   setInterval(()=>{ if(role==='gerente')loadDashboard(); },30000);
 });
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>
