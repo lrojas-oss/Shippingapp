@@ -176,6 +176,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* SUB-SECTION COLLAPSIBLE */
+.subsec-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;margin-top:10px;user-select:none;transition:background .12s;}
+.subsec-header:hover{background:var(--border2);}
+.subsec-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);}
+.subsec-icon{font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;}
+.subsec-icon.open{transform:rotate(90deg);}
+.subsec-body{display:none;padding-top:10px;border-left:2px solid var(--border);padding-left:12px;margin-top:2px;}
+.subsec-body.open{display:block;}
 @media(max-width:500px){.camiones-list,.dash-section{padding:.75rem;}.sup-toolbar,.dashboard-toolbar,.app-header{padding:.5rem .75rem;}.kpi-grid{padding:.75rem .75rem .25rem;}}
 </style>
 </head>
@@ -310,12 +318,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="transport-grid" id="transport-grid"><span style="color:var(--text3);font-size:13px">–</span></div>
   </div>
   <div class="dash-section">
-    <div class="dash-section-title">Carga de ayer / pendientes de días anteriores</div>
+    <div class="dash-section-title">Cargados — Pendientes de despacho</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
       <th>Fecha</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-ayer"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+    </tr></thead><tbody id="tbody-cargados"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Programa de hoy</div>
@@ -324,6 +332,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
     </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+  </div>
+  <div class="dash-section">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Departed Trucks</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <button class="btn btn-outline btn-sm" onclick="exportDepartedCSV()">↓ Excel / CSV</button>
+    </div>
+    <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
+      <th>Fecha</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
+      <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
+    </tr></thead><tbody id="tbody-departed"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
   </div>
 </div>
 
@@ -568,7 +588,7 @@ function mkCardBody(c){
   const ords=c.ordenes||[{qt:'',cliente:'',productos:[{producto:'',tarimas:''}],destino:'',fechaEntrega:''}];
   const sc=c.estatusCarga||'En espera';
   return`<div style="max-width:800px">
-    <div class="seccion-label">Sección 1 — Programación</div>
+    <div class="seccion-label" style="margin-top:0">Sección 1 — Programación</div>
     <div id="ords-${c.id}">${ords.map((o,i)=>mkOrden(c.id,i,o,ords.length)).join('')}</div>
     <div id="add-ord-${c.id}">${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${c.id}')">+ Agregar orden</button>`:''}</div>
     <div class="field-grid field-grid-2" style="margin-top:10px">
@@ -578,57 +598,67 @@ function mkCardBody(c){
           ${CAT.transportistas.map(t=>`<option value="${t}"${t===c.transportista?' selected':''}>${t}</option>`).join('')}
         </select></div>
     </div>
-    <div class="seccion-divider"></div>
-    <div class="seccion-label">Sección 2 — Trabajo en piso</div>
-    <div class="field-grid field-grid-3">
-      <div class="field-group"><label>No. Eco Caja</label>
-        <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
-      <div class="field-group"><label>Rampa (dock)</label>
-        <input type="text" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
+    <div class="subsec-header" onclick="toggleSub('sub2-${c.id}','si2-${c.id}')">
+      <span class="subsec-title">Sección 2 — Trabajo en piso</span>
+      <span class="subsec-icon" id="si2-${c.id}">▶</span>
     </div>
-    <div class="field-group" style="margin-top:8px"><label>Estatus de carga</label>
-      <div class="status-btns" id="sbts-${c.id}">
-        ${['En espera','Cargando','Cargado','Fuera de rampa'].map(s=>{
-          const k=s==='En espera'?'espera':s==='Cargando'?'cargando':s==='Cargado'?'cargado':'fuera';
-          const lbl=s==='Cargado'&&c.horaCargado?`Cargado ${c.horaCargado}`:s;
-          return`<button class="status-btn${sc===s?' active-'+k:''}" onclick="setEstatus('${c.id}',this,'${s}')">${lbl}</button>`;
-        }).join('')}
-      </div></div>
-    <div class="seccion-divider"></div>
-    <div class="seccion-label">Sección 3 — Despacho</div>
-    <div class="field-grid field-grid-2">
-      <div class="field-group"><label>No. Eco Truck</label>
-        <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
+    <div class="subsec-body" id="sub2-${c.id}">
+      <div class="field-grid field-grid-3">
+        <div class="field-group"><label>No. Eco Caja</label>
+          <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
+        <div class="field-group"><label>Rampa (dock)</label>
+          <input type="text" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
+      </div>
+      <div class="field-group" style="margin-top:8px"><label>Estatus de carga</label>
+        <div class="status-btns" id="sbts-${c.id}">
+          ${['En espera','Cargando','Cargado','Fuera de rampa'].map(s=>{
+            const k=s==='En espera'?'espera':s==='Cargando'?'cargando':s==='Cargado'?'cargado':'fuera';
+            const lbl=s==='Cargado'&&c.horaCargado?`Cargado ${c.horaCargado}`:s;
+            return`<button class="status-btn${sc===s?' active-'+k:''}" onclick="setEstatus('${c.id}',this,'${s}')">${lbl}</button>`;
+          }).join('')}
+        </div></div>
     </div>
-    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
-      <div class="field-group"><label>Facturado y reportado</label>
+    <div class="subsec-header" onclick="toggleSub('sub3-${c.id}','si3-${c.id}')">
+      <span class="subsec-title">Sección 3 — Despacho</span>
+      <span class="subsec-icon" id="si3-${c.id}">▶</span>
+    </div>
+    <div class="subsec-body" id="sub3-${c.id}">
+      <div class="field-grid field-grid-2">
+        <div class="field-group"><label>No. Eco Truck</label>
+          <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
+        <div class="field-group"><label>Facturado y reportado</label>
+          <div class="cruce-row">
+            <button class="action-btn${c.facturado?' done':''}" id="btn-fac-${c.id}" onclick="toggleFac('${c.id}',this)">
+              ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button>
+            <input type="time" id="fac-t-${c.id}" value="${c.facturadoAt||''}" onchange="updF('${c.id}','facturadoAt',this.value);updTimeDisplay('fac','${c.id}',this.value)" title="Hora facturado"/></div></div>
+        <div class="field-group"><label>Estatus Despacho</label>
+          <div class="cruce-row">
+            <button class="action-btn${c.despachado?' done':''}" id="btn-des-${c.id}" onclick="toggleDes('${c.id}',this)">
+              ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button>
+            <input type="time" id="des-t-${c.id}" value="${c.horaDespacho||''}" onchange="updF('${c.id}','horaDespacho',this.value);updTimeDisplay('des','${c.id}',this.value)" title="Hora despacho"/></div></div>
+      </div>
+      <div class="field-group" style="margin-top:10px"><label>Cruce de aduana</label>
         <div class="cruce-row">
-          <button class="action-btn${c.facturado?' done':''}" id="btn-fac-${c.id}" onclick="toggleFac('${c.id}',this)">
-            ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button>
-          <input type="time" id="fac-t-${c.id}" value="${c.facturadoAt||''}" onchange="updF('${c.id}','facturadoAt',this.value);updTimeDisplay('fac','${c.id}',this.value)" title="Hora facturado"/></div></div>
-      <div class="field-group"><label>Estatus Despacho</label>
-        <div class="cruce-row">
-          <button class="action-btn${c.despachado?' done':''}" id="btn-des-${c.id}" onclick="toggleDes('${c.id}',this)">
-            ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button>
-          <input type="time" id="des-t-${c.id}" value="${c.horaDespacho||''}" onchange="updF('${c.id}','horaDespacho',this.value);updTimeDisplay('des','${c.id}',this.value)" title="Hora despacho"/></div></div>
-    </div>
-    <div class="field-group" style="margin-top:10px"><label>Cruce de aduana</label>
-      <div class="cruce-row">
-        <button class="action-btn${c.cruceListo?' done':''}" id="btn-cru-${c.id}" onclick="toggleCruce('${c.id}',this)">
-          ${c.cruceListo?'✓ Cruce listo':'Marcar cruce listo'}</button>
-        <input type="time" id="cru-t-${c.id}" value="${c.horaCruce||''}" onchange="updF('${c.id}','horaCruce',this.value)" title="Hora de cruce"/>
-        ${c.horaCruce?`<span class="status-pill status-cruzado">${c.horaCruce}</span>`:''}
-      </div></div>
-    <div class="seccion-divider"></div>
-    <div class="seccion-label">Sección 4 — Notas</div>
-    <div class="field-group">
-      <textarea id="notas-${c.id}" rows="3" style="border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text);width:100%;resize:vertical;line-height:1.5" placeholder="Notas, observaciones, incidencias..." oninput="debouncedUpdF('${c.id}','notas',this.value)">${c.notas||''}</textarea>
+          <button class="action-btn${c.cruceListo?' done':''}" id="btn-cru-${c.id}" onclick="toggleCruce('${c.id}',this)">
+            ${c.cruceListo?'✓ Cruce listo':'Marcar cruce listo'}</button>
+          <input type="time" id="cru-t-${c.id}" value="${c.horaCruce||''}" onchange="updF('${c.id}','horaCruce',this.value)" title="Hora de cruce"/>
+          ${c.horaCruce?`<span class="status-pill status-cruzado">${c.horaCruce}</span>`:''}
+        </div></div>
+      <div class="field-group" style="margin-top:10px"><label>Notas</label>
+        <textarea id="notas-${c.id}" rows="3" style="border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text);width:100%;resize:vertical;line-height:1.5" placeholder="Notas, observaciones, incidencias..." oninput="debouncedUpdF('${c.id}','notas',this.value)">${c.notas||''}</textarea>
+      </div>
     </div>
     <div class="save-bar" style="margin-top:12px;padding:8px 0 0;background:transparent">
       <span class="save-status saved" id="ss-${c.id}">✓ Sincronizado</span>
       <button class="btn btn-outline btn-sm" onclick="toggleDetail('${c.id}')">Cerrar ↑</button>
     </div>
   </div>`;
+}
+function toggleSub(bodyId,iconId){
+  document.getElementById(bodyId).classList.toggle('open');
+  document.getElementById(iconId).classList.toggle('open');
 }
 
 function _unused_mkCard(c,num){
@@ -945,8 +975,9 @@ async function loadDashboard(){
     }
   }
   const hoy=today();
-  const ayerArr=all.filter(c=>c.fecha<hoy);
   const hoyArr=all.filter(c=>c.fecha===hoy);
+  const cargadosArr=all.filter(c=>c.estatusCarga==='Cargado'&&!c.despachado);
+  const departedArr=all.filter(c=>c.despachado);
 
   document.getElementById('k-hoy').textContent=hoyArr.length;
   document.getElementById('k-cargados').textContent=hoyArr.filter(c=>c.estatusCarga==='Cargado').length;
@@ -960,8 +991,9 @@ async function loadDashboard(){
   document.getElementById('transport-grid').innerHTML=Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`
     <div class="transport-chip"><strong>${t}</strong><span>${n}</span><span class="transport-pct">${Math.round(n/tot*100)}%</span></div>`).join('')||'<span style="color:var(--text3)">Sin datos</span>';
 
-  fillTabla('tbody-ayer',ayerArr);
+  fillTabla('tbody-cargados',cargadosArr);
   fillTabla('tbody-hoy',hoyArr);
+  fillTabla('tbody-departed',departedArr);
 }
 
 function fillTabla(tid,list){
@@ -1002,7 +1034,7 @@ function fillTabla(tid,list){
 function exportCSV(){
   const header=['Fecha','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
   const rows=[header];
-  ['tbody-ayer','tbody-hoy'].forEach(id=>{
+  ['tbody-cargados','tbody-hoy','tbody-departed'].forEach(id=>{
     document.querySelectorAll('#'+id+' tr:not(.empty-row)').forEach(tr=>{
       const cells=[...tr.querySelectorAll('td')].map(td=>(td.querySelector('.status-pill')?.textContent||td.textContent).trim());
       if(cells.length>1)rows.push(cells);
@@ -1013,6 +1045,19 @@ function exportCSV(){
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download='HTM_Shipping_'+today()+'.csv'; a.click();
   toast('CSV exportado','success');
+}
+function exportDepartedCSV(){
+  const header=['Fecha','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
+  const rows=[header];
+  document.querySelectorAll('#tbody-departed tr:not(.empty-row)').forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>(td.querySelector('.status-pill')?.textContent||td.textContent).trim());
+    if(cells.length>1)rows.push(cells);
+  });
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='HTM_Departed_'+today()+'.csv'; a.click();
+  toast('CSV Departed Trucks exportado','success');
 }
 
 // ── UI ──
