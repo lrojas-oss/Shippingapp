@@ -188,6 +188,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .subsec-body{display:none;padding-top:10px;border-left:2px solid var(--border);padding-left:12px;margin-top:2px;}
 .subsec-body.open{display:block;}
 @media(max-width:500px){.camiones-list,.dash-section{padding:.75rem;}.sup-toolbar,.dashboard-toolbar,.app-header{padding:.5rem .75rem;}.kpi-grid{padding:.75rem .75rem .25rem;}}
+.trans-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.trans-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);}
+.trans-name{font-weight:600;font-size:14px;flex:1;}
+.trans-count{font-family:var(--mono);font-size:12px;background:var(--text);color:#fff;padding:2px 8px;border-radius:4px;}
 </style>
 </head>
 <body>
@@ -362,6 +366,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
     </tr></thead><tbody id="tbody-departed"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+  </div>
+  <div class="dash-section">
+    <div class="dash-section-title">Programa por Transportista</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text3)">Fecha del programa:</span>
+      <input type="date" id="trans-fecha" onchange="loadTransportistas()" style="border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)"/>
+      <button class="btn btn-outline btn-sm" onclick="loadTransportistas()">↻ Actualizar</button>
+    </div>
+    <div id="trans-grid"><div style="color:var(--text3);font-size:13px;font-style:italic">Selecciona una fecha para ver el programa por transportista.</div></div>
   </div>
 </div>
 
@@ -573,7 +586,9 @@ async function enterAs(r){
   } else {
     document.getElementById('ger-desde').value=yesterday();
     document.getElementById('ger-hasta').value=today();
+    document.getElementById('trans-fecha').value=today();
     loadDashboard();
+    loadTransportistas();
   }
 }
 function logout(){ if(unsub){unsub();unsub=null;} openPanelId=null; role=null; showScr('login-screen'); }
@@ -1144,6 +1159,82 @@ function exportDepartedCSV(){
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download='HTM_Departed_'+today()+'.csv'; a.click();
   toast('CSV Departed Trucks exportado','success');
+}
+
+// ── PROGRAMA POR TRANSPORTISTA ──
+async function loadTransportistas(){
+  const fecha=document.getElementById('trans-fecha')?.value;
+  if(!fecha)return;
+  const grid=document.getElementById('trans-grid');
+  if(!grid)return;
+  grid.innerHTML='<div style="color:var(--text3);font-size:13px;padding:.5rem 0">Cargando...</div>';
+  let all=[];
+  if(db){
+    try{
+      const snap=await db.collection('programas').where('fecha','==',fecha).orderBy('createdAt','asc').get();
+      all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){ console.warn(e); }
+  } else {
+    all=JSON.parse(localStorage.getItem('htm_'+fecha)||'[]');
+  }
+  if(!all.length){
+    grid.innerHTML='<div style="color:var(--text3);font-size:13px;font-style:italic;padding:.5rem 0">Sin programa para esta fecha.</div>';
+    return;
+  }
+  const byTrans={};
+  all.forEach(c=>{
+    const t=c.transportista||'Sin asignar';
+    if(!byTrans[t])byTrans[t]=[];
+    (c.ordenes||[{}]).forEach(o=>{
+      byTrans[t].push({cliente:o.cliente||'–',destino:o.destino||'–',fechaEntrega:o.fechaEntrega||''});
+    });
+  });
+  const sid=s=>s.replace(/[^a-z0-9]/gi,'_');
+  grid.innerHTML=Object.entries(byTrans).sort((a,b)=>a[0].localeCompare(b[0])).map(([trans,rows])=>`
+    <div class="trans-block" id="tb-${sid(trans)}">
+      <div class="trans-header">
+        <span class="trans-count">${rows.length} unidad${rows.length!==1?'es':''}</span>
+        <span class="trans-name">${trans}</span>
+        <button class="btn btn-outline btn-sm" onclick="printTransportista('${sid(trans)}','${fecha}')">⎙ Imprimir / Enviar</button>
+      </div>
+      <div class="dash-table-wrap" style="border:none;border-radius:0">
+        <table class="dash-table"><thead><tr>
+          <th>No. de unidades</th><th>Cliente</th><th>Destino</th><th>Fecha de entrega</th>
+        </tr></thead><tbody>
+          ${rows.map(r=>`<tr>
+            <td class="mono" style="text-align:center">1</td>
+            <td>${r.cliente}</td><td>${r.destino}</td>
+            <td class="mono">${r.fechaEntrega?fmtD(r.fechaEntrega):'–'}</td>
+          </tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>`).join('');
+}
+function printTransportista(sid,fecha){
+  const block=document.getElementById('tb-'+sid);
+  if(!block){toast('Error al generar impresión','error');return;}
+  const transName=block.querySelector('.trans-name').textContent;
+  const rows=[...block.querySelectorAll('tbody tr')].map(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>td.textContent.trim());
+    return`<tr><td>${cells[0]}</td><td>${cells[1]}</td><td>${cells[2]}</td><td>${cells[3]}</td></tr>`;
+  }).join('');
+  const w=window.open('','_blank','width=820,height=640');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <title>Programa ${transName} — ${fmtD(fecha)}</title>
+    <style>body{font-family:'Segoe UI',Arial,sans-serif;padding:28px 32px;color:#111;font-size:13px;max-width:760px;margin:0 auto}
+    h2{margin-bottom:4px;font-size:18px}p{color:#666;margin-bottom:20px;font-size:12px}
+    table{width:100%;border-collapse:collapse;margin-bottom:24px}
+    th{background:#f5f5f5;border:1px solid #ddd;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+    td{border:1px solid #ddd;padding:8px 10px}td:first-child{text-align:center;font-family:monospace}
+    .btn-print{background:#2d6a4f;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px}
+    @media print{.btn-print{display:none}}</style></head><body>
+    <h2>${transName}</h2>
+    <p>Programa de carga — ${fmtD(fecha)}</p>
+    <table><thead><tr><th>No. de unidades</th><th>Cliente</th><th>Destino</th><th>Fecha de entrega</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <button class="btn-print" onclick="window.print()">⎙ Imprimir</button>
+    </body></html>`);
+  w.document.close();
 }
 
 // ── UI ──
