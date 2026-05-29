@@ -124,10 +124,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .dash-section{padding:1rem 1.25rem;}
 .dash-section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .dash-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-.transport-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.5rem;}
-.transport-chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
-.transport-chip strong{font-family:var(--mono);}
-.transport-pct{color:var(--text3);font-size:11px;}
+.transport-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:.5rem;}
+.transport-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.transport-card-name{font-weight:700;font-size:13px;margin-bottom:4px;}
+.transport-card-num{font-family:var(--mono);font-size:22px;color:var(--accent);line-height:1.2;}
+.transport-card-pct{font-size:11px;color:var(--text3);margin-bottom:6px;}
+.transport-bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.transport-bar-fill{height:4px;background:var(--accent);border-radius:2px;}
 .dash-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
 .dash-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg2);}
 .dash-table thead th{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
@@ -297,7 +300,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <thead><tr>
           <th style="width:28px"></th>
           <th>#</th><th>Cliente</th><th>QT</th><th>Producto</th>
-          <th>Transportista</th><th>Eco Caja</th><th>Rampa</th>
+          <th>Transportista</th><th>Destino</th><th>Eco Caja</th><th>Rampa</th>
           <th>Estatus Carga</th><th>Despacho</th><th>Cruce</th>
           <th></th>
         </tr></thead>
@@ -603,7 +606,7 @@ async function loadPrograma(){
   const fecha=document.getElementById('sup-fecha').value; if(!fecha)return;
   openPanelId=null;
   const tbody=document.getElementById('camiones-tbody');
-  if(tbody) tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
+  if(tbody) tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
   if(unsub){unsub();unsub=null;}
   if(db){
     unsub=db.collection('programas').where('fecha','==',fecha).orderBy('createdAt','asc')
@@ -622,7 +625,7 @@ async function loadPrograma(){
 function renderCamiones(list,fecha){
   const tbody=document.getElementById('camiones-tbody');
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "+ Agregar camión" para crear el programa.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "+ Agregar camión" para crear el programa.</td></tr>`;
     return;
   }
   tbody.innerHTML='';
@@ -633,13 +636,18 @@ function renderCamiones(list,fecha){
     const scLabel=sc==='Cargado'&&c.horaCargado?`Cargado ${c.horaCargado}`:sc;
     const tr=document.createElement('tr');
     tr.className='camion-row'; tr.id='row-'+c.id;
+    const clientes=ords.map(o=>o.cliente||'–').join(' / ');
+    const qts=ords.map(o=>o.qt||'–').join(' / ');
+    const productos=ords.map(o=>(o.productos||[{}])[0]?.producto||'–').join(' / ');
+    const destinos=ords.map(o=>o.destino||'–').join(' / ');
     tr.innerHTML=`
       <td><span class="expand-icon" id="ei-${c.id}">▶</span></td>
       <td><span style="font-family:var(--mono);font-size:12px;font-weight:500;background:var(--text);color:#fff;padding:1px 7px;border-radius:4px">${i+1}</span></td>
-      <td style="font-weight:500">${ords[0]?.cliente||'–'}</td>
-      <td class="mono">${ords[0]?.qt||'–'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${(ords[0]?.productos||[{}])[0]?.producto||'–'}</td>
+      <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${clientes}</td>
+      <td class="mono">${qts}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productos}</td>
       <td>${c.transportista||'–'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${destinos}</td>
       <td class="mono">${c.ecoBox||'–'}</td>
       <td class="mono">${c.rampa||'–'}</td>
       <td><span class="status-pill status-${scls}">${scLabel}</span></td>
@@ -650,7 +658,7 @@ function renderCamiones(list,fecha){
     tbody.appendChild(tr);
     const trD=document.createElement('tr');
     trD.className='detail-row'; trD.id='drow-'+c.id;
-    trD.innerHTML=`<td colspan="12"><div class="detail-panel" id="dp-${c.id}">${mkCardBody(c)}</div></td>`;
+    trD.innerHTML=`<td colspan="13"><div class="detail-panel" id="dp-${c.id}">${mkCardBody(c)}</div></td>`;
     tbody.appendChild(trD);
   });
   // Restore open panel after re-render without triggering scroll/animation
@@ -1089,8 +1097,10 @@ async function loadDashboard(){
   const tc={};
   all.forEach(c=>{ const t=c.transportista||'Sin asignar'; tc[t]=(tc[t]||0)+1; });
   const tot=all.length||1;
-  document.getElementById('transport-grid').innerHTML=Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`
-    <div class="transport-chip"><strong>${t}</strong><span>${n}</span><span class="transport-pct">${Math.round(n/tot*100)}%</span></div>`).join('')||'<span style="color:var(--text3)">Sin datos</span>';
+  document.getElementById('transport-grid').innerHTML=Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,n])=>{
+    const pct=Math.round(n/tot*100);
+    return `<div class="transport-card"><div class="transport-card-name">${t}</div><div class="transport-card-num">${n}</div><div class="transport-card-pct">${pct}%</div><div class="transport-bar-bg"><div class="transport-bar-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('')||'<span style="color:var(--text3)">Sin datos</span>';
 
   fillTabla('tbody-cargados',cargadosArr);
   fillTabla('tbody-hoy',hoyArr);
