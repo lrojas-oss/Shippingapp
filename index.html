@@ -192,9 +192,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .subsec-body.open{display:block;}
 @media(max-width:500px){.camiones-list,.dash-section{padding:.75rem;}.sup-toolbar,.dashboard-toolbar,.app-header{padding:.5rem .75rem;}.kpi-grid{padding:.75rem .75rem .25rem;}}
 .trans-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
-.trans-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);}
+.trans-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;}
 .trans-name{font-weight:600;font-size:14px;flex:1;}
 .trans-count{font-family:var(--mono);font-size:12px;background:var(--text);color:#fff;padding:2px 8px;border-radius:4px;}
+.trans-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;}
+.trans-cols .trans-block{margin-bottom:0;}
+.trans-cols .trans-header{padding:8px 10px;}
+.trans-cols .trans-name{font-size:13px;}
+.trans-cols .dash-table{font-size:11px;}
+.trans-cols .dash-table th,.trans-cols .dash-table td{padding:6px 8px;}
+@media(max-width:1100px){.trans-cols{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:680px){.trans-cols{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -377,7 +385,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <input type="date" id="trans-fecha" onchange="loadTransportistas()" style="border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)"/>
       <button class="btn btn-outline btn-sm" onclick="loadTransportistas()">↻ Actualizar</button>
     </div>
-    <div id="trans-grid"><div style="color:var(--text3);font-size:13px;font-style:italic">Selecciona una fecha para ver el programa por transportista.</div></div>
+    <div id="trans-grid" class="trans-cols"><div style="color:var(--text3);font-size:13px;font-style:italic">Selecciona una fecha para ver el programa por transportista.</div></div>
   </div>
 </div>
 
@@ -390,6 +398,7 @@ let CFG = JSON.parse(localStorage.getItem('htm_cfg')||'{}');
 let db = null, role = null, unsub = null, currentUser = null;
 let CAT = { clientes:[], productos:{}, transportistas:[], destinos:[] };
 let openPanelId = null; // tracks which camion detail is expanded
+let openSubsecs = {}; // tracks which sub-sections (2,3) are expanded per camion id, survives re-renders from onSnapshot
 const SHEETS_DEFAULT = '1ZNv4CsC2L40BC8ye6SvGap4cKOv9hcU13O6Gapxry_8';
 const FIREBASE_DEFAULT = {
   apiKey:"AIzaSyCy_vgYncZv48qTf5sPXgZeRdOSu_CgUE8",
@@ -604,7 +613,7 @@ function setDateLabels(){
 // ── SUPERVISOR ──
 async function loadPrograma(){
   const fecha=document.getElementById('sup-fecha').value; if(!fecha)return;
-  openPanelId=null;
+  openPanelId=null; openSubsecs={};
   const tbody=document.getElementById('camiones-tbody');
   if(tbody) tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
   if(unsub){unsub();unsub=null;}
@@ -706,11 +715,11 @@ function mkCardBody(c){
           ${CAT.transportistas.map(t=>`<option value="${t}"${t===c.transportista?' selected':''}>${t}</option>`).join('')}
         </select></div>
     </div>
-    <div class="subsec-header" onclick="toggleSub('sub2-${c.id}','si2-${c.id}')">
+    <div class="subsec-header" onclick="toggleSub('${c.id}',2)">
       <span class="subsec-title">Sección 2 — Trabajo en piso</span>
-      <span class="subsec-icon" id="si2-${c.id}">▶</span>
+      <span class="subsec-icon${(openSubsecs[c.id]&&openSubsecs[c.id].has(2))?' open':''}" id="si2-${c.id}">▶</span>
     </div>
-    <div class="subsec-body" id="sub2-${c.id}">
+    <div class="subsec-body${(openSubsecs[c.id]&&openSubsecs[c.id].has(2))?' open':''}" id="sub2-${c.id}">
       <div class="field-grid field-grid-3">
         <div class="field-group"><label>No. Eco Caja</label>
           <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
@@ -726,11 +735,11 @@ function mkCardBody(c){
           }).join('')}
         </div></div>
     </div>
-    <div class="subsec-header" onclick="toggleSub('sub3-${c.id}','si3-${c.id}')">
+    <div class="subsec-header" onclick="toggleSub('${c.id}',3)">
       <span class="subsec-title">Sección 3 — Despacho</span>
-      <span class="subsec-icon" id="si3-${c.id}">▶</span>
+      <span class="subsec-icon${(openSubsecs[c.id]&&openSubsecs[c.id].has(3))?' open':''}" id="si3-${c.id}">▶</span>
     </div>
-    <div class="subsec-body" id="sub3-${c.id}">
+    <div class="subsec-body${(openSubsecs[c.id]&&openSubsecs[c.id].has(3))?' open':''}" id="sub3-${c.id}">
       <div class="field-grid field-grid-2">
         <div class="field-group"><label>No. Eco Truck</label>
           <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
@@ -764,9 +773,14 @@ function mkCardBody(c){
     </div>
   </div>`;
 }
-function toggleSub(bodyId,iconId){
-  document.getElementById(bodyId).classList.toggle('open');
-  document.getElementById(iconId).classList.toggle('open');
+function toggleSub(cid,secNum){
+  const body=document.getElementById('sub'+secNum+'-'+cid);
+  const icon=document.getElementById('si'+secNum+'-'+cid);
+  if(!body||!icon)return;
+  const isOpen=body.classList.toggle('open');
+  icon.classList.toggle('open',isOpen);
+  if(!openSubsecs[cid])openSubsecs[cid]=new Set();
+  if(isOpen) openSubsecs[cid].add(secNum); else openSubsecs[cid].delete(secNum);
 }
 
 function _unused_mkCard(c,num){
@@ -935,6 +949,7 @@ async function addCamion(){
 
 async function delCamion(id){
   if(!confirm('¿Eliminar este camión del programa?'))return;
+  delete openSubsecs[id];
   if(db){ await db.collection('programas').doc(id).delete(); }
   else {
     const fecha=document.getElementById('sup-fecha').value;
