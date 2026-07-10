@@ -190,6 +190,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .subsec-icon.open{transform:rotate(90deg);}
 .subsec-body{display:none;padding-top:10px;border-left:2px solid var(--border);padding-left:12px;margin-top:2px;}
 .subsec-body.open{display:block;}
+@media(max-width:800px) { .hide-mob { display:none!important; } }
+.subsec-header.sec2 { background: var(--amber-bg); border-color: #fcd34d; }
+.subsec-header.sec2:hover { background: #fde68a; }
+.subsec-header.sec2 .subsec-title { color: var(--amber); }
+.subsec-header.sec2 .subsec-icon { color: var(--amber); }
+.subsec-header.sec3 { background: var(--blue-bg); border-color: #93c5fd; }
+.subsec-header.sec3:hover { background: #bfdbfe; }
+.subsec-header.sec3 .subsec-title { color: var(--blue); }
+.subsec-header.sec3 .subsec-icon { color: var(--blue); }
 @media(max-width:500px){.camiones-list,.dash-section{padding:.75rem;}.sup-toolbar,.dashboard-toolbar,.app-header{padding:.5rem .75rem;}.kpi-grid{padding:.75rem .75rem .25rem;}}
 .trans-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
 .trans-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;}
@@ -307,9 +316,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <table class="sup-table">
         <thead><tr>
           <th style="width:28px"></th>
-          <th>#</th><th>Cliente</th><th>QT</th><th>Producto</th>
-          <th>Transportista</th><th>Destino</th><th>Eco Caja</th><th>Rampa</th>
-          <th>Estatus Carga</th><th>Despacho</th><th>Cruce</th>
+          <th>#</th><th>Cliente</th><th class="hide-mob">QT</th><th class="hide-mob">Producto</th>
+          <th class="hide-mob">Transportista</th><th class="hide-mob">Destino</th><th class="hide-mob">Eco Caja</th><th class="hide-mob">Rampa</th>
+          <th>Estatus Carga</th><th class="hide-mob">Despacho</th><th class="hide-mob">Cruce</th>
           <th></th>
         </tr></thead>
         <tbody id="camiones-tbody"></tbody>
@@ -632,6 +641,9 @@ async function loadPrograma(){
 }
 
 function renderCamiones(list,fecha){
+  const activeEl = document.activeElement;
+  const activeId = activeEl ? activeEl.id : null;
+  const selectionStart = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') ? activeEl.selectionStart : null;
   const tbody=document.getElementById('camiones-tbody');
   if(!list.length){
     tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "+ Agregar camión" para crear el programa.</td></tr>`;
@@ -653,15 +665,15 @@ function renderCamiones(list,fecha){
       <td><span class="expand-icon" id="ei-${c.id}">▶</span></td>
       <td><span style="font-family:var(--mono);font-size:12px;font-weight:500;background:var(--text);color:#fff;padding:1px 7px;border-radius:4px">${i+1}</span></td>
       <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${clientes}</td>
-      <td class="mono">${qts}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productos}</td>
-      <td>${c.transportista||'–'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${destinos}</td>
-      <td class="mono">${c.ecoBox||'–'}</td>
-      <td class="mono">${c.rampa||'–'}</td>
+      <td class="mono hide-mob">${qts}</td>
+      <td class="hide-mob" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productos}</td>
+      <td class="hide-mob">${c.transportista||'–'}</td>
+      <td class="hide-mob" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${destinos}</td>
+      <td class="mono hide-mob">${c.ecoBox||'–'}</td>
+      <td class="mono hide-mob">${c.rampa||'–'}</td>
       <td><span class="status-pill status-${scls}">${scLabel}</span></td>
-      <td><span class="status-pill ${c.despachado?'status-despachado':'status-pendiente'}">${c.despachado?'Desp. '+(c.horaDespacho||''):'Pendiente'}</span></td>
-      <td><span class="status-pill ${c.cruceListo?'status-cruzado':'status-pendiente'}">${c.cruceListo?(c.horaCruce||'Cruzado'):'Pendiente'}</span></td>
+      <td class="hide-mob"><span class="status-pill ${c.despachado?'status-despachado':'status-pendiente'}">${c.despachado?'Desp. '+(c.horaDespacho||''):'Pendiente'}</span></td>
+      <td class="hide-mob"><span class="status-pill ${c.cruceListo?'status-cruzado':'status-pendiente'}">${c.cruceListo?(c.horaCruce||'Cruzado'):'Pendiente'}</span></td>
       <td><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delCamion('${c.id}')">✕</button></td>`;
     tr.onclick=()=>toggleDetail(c.id);
     tbody.appendChild(tr);
@@ -678,6 +690,13 @@ function renderCamiones(list,fecha){
     if(panel){ panel.classList.add('open'); }
     if(icon){ icon.classList.add('open'); }
     if(row){ row.classList.add('expanded'); }
+  }
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      try{ if(selectionStart !== null) el.setSelectionRange(selectionStart, selectionStart); }catch(e){}
+    }
   }
 }
 
@@ -715,16 +734,16 @@ function mkCardBody(c){
           ${CAT.transportistas.map(t=>`<option value="${t}"${t===c.transportista?' selected':''}>${t}</option>`).join('')}
         </select></div>
     </div>
-    <div class="subsec-header" onclick="toggleSub('${c.id}',2)">
+    <div class="subsec-header sec2" onclick="toggleSub('${c.id}',2)">
       <span class="subsec-title">Sección 2 — Trabajo en piso</span>
       <span class="subsec-icon${(openSubsecs[c.id]&&openSubsecs[c.id].has(2))?' open':''}" id="si2-${c.id}">▶</span>
     </div>
     <div class="subsec-body${(openSubsecs[c.id]&&openSubsecs[c.id].has(2))?' open':''}" id="sub2-${c.id}">
       <div class="field-grid field-grid-3">
         <div class="field-group"><label>No. Eco Caja</label>
-          <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
+          <input type="text" id="eb-${c.id}" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
         <div class="field-group"><label>Rampa (dock)</label>
-          <input type="text" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
+          <input type="text" id="rm-${c.id}" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
       </div>
       <div class="field-group" style="margin-top:8px"><label>Estatus de carga</label>
         <div class="status-btns" id="sbts-${c.id}">
@@ -735,14 +754,14 @@ function mkCardBody(c){
           }).join('')}
         </div></div>
     </div>
-    <div class="subsec-header" onclick="toggleSub('${c.id}',3)">
+    <div class="subsec-header sec3" onclick="toggleSub('${c.id}',3)">
       <span class="subsec-title">Sección 3 — Despacho</span>
       <span class="subsec-icon${(openSubsecs[c.id]&&openSubsecs[c.id].has(3))?' open':''}" id="si3-${c.id}">▶</span>
     </div>
     <div class="subsec-body${(openSubsecs[c.id]&&openSubsecs[c.id].has(3))?' open':''}" id="sub3-${c.id}">
       <div class="field-grid field-grid-2">
         <div class="field-group"><label>No. Eco Truck</label>
-          <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
+          <input type="text" id="et-${c.id}" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
       </div>
       <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
         <div class="field-group"><label>Facturado y reportado</label>
