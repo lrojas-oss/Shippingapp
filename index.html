@@ -82,6 +82,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .seccion-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;margin-top:12px;}
 .seccion-label:first-child{margin-top:0;}
 .seccion-divider{height:1px;background:var(--border);margin:10px 0;}
+.sub-section{margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.sub-section-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;user-select:none;}
+.sub-section-header.sub-sec2{background:var(--amber-bg);color:var(--amber);}
+.sub-section-header.sub-sec3{background:var(--blue-bg);color:var(--blue);}
+.sub-chevron{font-size:10px;transition:transform .2s;display:inline-block;}
+.sub-chevron.open{transform:rotate(90deg);}
+.sub-section-body{display:none;padding:10px 12px;}
+.sub-section-body.open{display:block;}
 .field-grid{display:grid;gap:8px;}
 .field-grid-2{grid-template-columns:1fr 1fr;}
 .field-grid-3{grid-template-columns:1fr 1fr 1fr;}
@@ -332,6 +340,7 @@ let CFG = JSON.parse(localStorage.getItem('htm_cfg')||'{}');
 let db = null, role = null, unsub = null;
 let CAT = { clientes:[], productos:{}, transportistas:[], destinos:[], destinosPorCliente:{} };
 let openPanelId = null; // tracks which camion detail is expanded
+let openSubs = new Set(); // tracks which '<camionId>_2' / '<camionId>_3' sub-sections are expanded
 const SHEETS_DEFAULT = '1ZNv4CsC2L40BC8ye6SvGap4cKOv9hcU13O6Gapxry_8';
 const FALLBACK = {
   clientes:['Baloian','Boskovich','Braga Fresh','Family Fresh Farms','Fresh Express','Fresh Point','Fresh Truck Farms','Freshway','Fruvemex','Ocean Mist Farms','Taylor Farms'],
@@ -524,6 +533,8 @@ function toggleDetail(id){
 function mkCardBody(c){
   const ords=c.ordenes||[{qt:'',cliente:'',productos:[{producto:'',tarimas:''}],destino:'',fechaEntrega:''}];
   const sc=c.estatusCarga||'En espera';
+  const o2=openSubs.has(c.id+'_2')?' open':'';
+  const o3=openSubs.has(c.id+'_3')?' open':'';
   return`<div style="max-width:800px">
     <div class="seccion-label">Sección 1 — Programación</div>
     <div id="ords-${c.id}">${ords.map((o,i)=>mkOrden(c.id,i,o,ords.length)).join('')}</div>
@@ -535,50 +546,70 @@ function mkCardBody(c){
           ${CAT.transportistas.map(t=>`<option value="${t}"${t===c.transportista?' selected':''}>${t}</option>`).join('')}
         </select></div>
     </div>
-    <div class="seccion-divider"></div>
-    <div class="seccion-label">Sección 2 — Trabajo en piso</div>
-    <div class="field-grid field-grid-3">
-      <div class="field-group"><label>No. Eco Caja</label>
-        <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
-      <div class="field-group"><label>Rampa (dock)</label>
-        <input type="text" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
+    <div class="sub-section" id="subsec-${c.id}-2">
+      <div class="sub-section-header sub-sec2" onclick="toggleSub('${c.id}',2)">
+        <span>Sección 2 — Trabajo en piso</span>
+        <span class="sub-chevron${o2}" id="subic-${c.id}-2">▶</span>
+      </div>
+      <div class="sub-section-body${o2}" id="subbody-${c.id}-2">
+        <div class="field-grid field-grid-3">
+          <div class="field-group"><label>No. Eco Caja</label>
+            <input type="text" value="${c.ecoBox||''}" placeholder="Ej. 4521" onchange="updF('${c.id}','ecoBox',this.value)"/></div>
+          <div class="field-group"><label>Rampa (dock)</label>
+            <input type="text" value="${c.rampa||''}" placeholder="Ej. 3" onchange="updF('${c.id}','rampa',this.value)"/></div>
+        </div>
+        <div class="field-group" style="margin-top:8px"><label>Estatus de carga</label>
+          <div class="status-btns" id="sbts-${c.id}">
+            ${['En espera','Cargando','Cargado','Fuera de rampa'].map(s=>{
+              const k=s==='En espera'?'espera':s==='Cargando'?'cargando':s==='Cargado'?'cargado':'fuera';
+              const lbl=s==='Cargado'&&c.horaCargado?`Cargado ${c.horaCargado}`:s;
+              return`<button class="status-btn${sc===s?' active-'+k:''}" onclick="setEstatus('${c.id}',this,'${s}')">${lbl}</button>`;
+            }).join('')}
+          </div></div>
+      </div>
     </div>
-    <div class="field-group" style="margin-top:8px"><label>Estatus de carga</label>
-      <div class="status-btns" id="sbts-${c.id}">
-        ${['En espera','Cargando','Cargado','Fuera de rampa'].map(s=>{
-          const k=s==='En espera'?'espera':s==='Cargando'?'cargando':s==='Cargado'?'cargado':'fuera';
-          const lbl=s==='Cargado'&&c.horaCargado?`Cargado ${c.horaCargado}`:s;
-          return`<button class="status-btn${sc===s?' active-'+k:''}" onclick="setEstatus('${c.id}',this,'${s}')">${lbl}</button>`;
-        }).join('')}
-      </div></div>
-    <div class="seccion-divider"></div>
-    <div class="seccion-label">Sección 3 — Despacho</div>
-    <div class="field-grid field-grid-2">
-      <div class="field-group"><label>No. Eco Truck</label>
-        <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
+    <div class="sub-section" id="subsec-${c.id}-3">
+      <div class="sub-section-header sub-sec3" onclick="toggleSub('${c.id}',3)">
+        <span>Sección 3 — Despacho</span>
+        <span class="sub-chevron${o3}" id="subic-${c.id}-3">▶</span>
+      </div>
+      <div class="sub-section-body${o3}" id="subbody-${c.id}-3">
+        <div class="field-grid field-grid-2">
+          <div class="field-group"><label>No. Eco Truck</label>
+            <input type="text" value="${c.ecoTruck||''}" placeholder="Ej. T-8821" onchange="updF('${c.id}','ecoTruck',this.value)"/></div>
+        </div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
+          <div class="field-group"><label>Facturado y reportado</label>
+            <div class="action-btns">
+              <button class="action-btn${c.facturado?' done':''}" id="btn-fac-${c.id}" onclick="toggleFac('${c.id}',this)">
+                ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button></div></div>
+          <div class="field-group"><label>Estatus Despacho</label>
+            <div class="action-btns">
+              <button class="action-btn${c.despachado?' done':''}" id="btn-des-${c.id}" onclick="toggleDes('${c.id}',this)">
+                ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button></div></div>
+        </div>
+        <div class="field-group" style="margin-top:10px"><label>Cruce de aduana</label>
+          <div class="cruce-row">
+            <button class="action-btn${c.cruceListo?' done':''}" id="btn-cru-${c.id}" onclick="toggleCruce('${c.id}',this)">
+              ${c.cruceListo?'✓ Cruce listo':'Marcar cruce listo'}</button>
+            <input type="time" id="cru-t-${c.id}" value="${c.horaCruce||''}" onchange="updF('${c.id}','horaCruce',this.value)" title="Hora de cruce"/>
+            ${c.horaCruce?`<span class="status-pill status-cruzado">${c.horaCruce}</span>`:''}
+          </div></div>
+      </div>
     </div>
-    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:12px">
-      <div class="field-group"><label>Facturado y reportado</label>
-        <div class="action-btns">
-          <button class="action-btn${c.facturado?' done':''}" id="btn-fac-${c.id}" onclick="toggleFac('${c.id}',this)">
-            ${c.facturado?'✓ Sí — '+(c.facturadoAt||''):'Pendiente'}</button></div></div>
-      <div class="field-group"><label>Estatus Despacho</label>
-        <div class="action-btns">
-          <button class="action-btn${c.despachado?' done':''}" id="btn-des-${c.id}" onclick="toggleDes('${c.id}',this)">
-            ${c.despachado?'✓ Despachado — '+(c.horaDespacho||''):'Pendiente'}</button></div></div>
-    </div>
-    <div class="field-group" style="margin-top:10px"><label>Cruce de aduana</label>
-      <div class="cruce-row">
-        <button class="action-btn${c.cruceListo?' done':''}" id="btn-cru-${c.id}" onclick="toggleCruce('${c.id}',this)">
-          ${c.cruceListo?'✓ Cruce listo':'Marcar cruce listo'}</button>
-        <input type="time" id="cru-t-${c.id}" value="${c.horaCruce||''}" onchange="updF('${c.id}','horaCruce',this.value)" title="Hora de cruce"/>
-        ${c.horaCruce?`<span class="status-pill status-cruzado">${c.horaCruce}</span>`:''}
-      </div></div>
     <div class="save-bar" style="margin-top:12px;padding:8px 0 0;background:transparent">
       <span class="save-status saved" id="ss-${c.id}">✓ Sincronizado</span>
       <button class="btn btn-outline btn-sm" onclick="toggleDetail('${c.id}')">Cerrar ↑</button>
     </div>
   </div>`;
+}
+
+function toggleSub(id,n){
+  const key=id+'_'+n;
+  const body=document.getElementById('subbody-'+id+'-'+n);
+  const chev=document.getElementById('subic-'+id+'-'+n);
+  if(openSubs.has(key)){ openSubs.delete(key); body.classList.remove('open'); chev.classList.remove('open'); }
+  else { openSubs.add(key); body.classList.add('open'); chev.classList.add('open'); }
 }
 
 function _unused_mkCard(c,num){
@@ -815,7 +846,7 @@ async function setOrdenes(id,ords){
     const fecha=document.getElementById('sup-fecha').value;
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
     const i=a.findIndex(c=>c.id===id); if(i>=0){a[i].ordenes=ords;localStorage.setItem(k,JSON.stringify(a));}
-    loadPrograma();
+    renderCamiones(a,fecha); // keep openPanelId / sub-section state, unlike loadPrograma()
   }
 }
 
