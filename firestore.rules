@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isCompanyUser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*@(harvesttekmex[.]com|sfcos[.]com)$');
+    }
+
+    match /{document=**} {
+      allow read, write: if isCompanyUser();
+    }
+  }
+}

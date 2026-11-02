@@ -171,6 +171,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* CONFIG MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:500;padding:1rem;}
 .modal-overlay.hidden{display:none;}
+.hidden{display:none!important;}
 .modal-box{background:var(--bg2);border-radius:12px;border:1px solid var(--border);width:100%;max-width:480px;padding:1.5rem;max-height:90vh;overflow-y:auto;}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:.25rem;}
 .modal-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem;}
@@ -224,17 +225,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="login-box">
       <div class="login-logo">HARVEST TEK <span>MÉXICO</span></div>
       <div class="login-title">Shipping App</div>
-      <div class="login-sub">Selecciona tu perfil para continuar</div>
-      <div class="role-cards">
-        <div class="role-card" onclick="enterAs('supervisor')">
-          <div class="role-icon supervisor">🚛</div>
-          <div class="role-name">Supervisor</div>
-          <div class="role-desc">Captura y seguimiento en piso</div>
+      <div id="login-gate" style="text-align:center">
+        <div class="login-sub">Inicia sesión con tu cuenta de la empresa</div>
+        <button class="btn btn-primary" onclick="signInGoogle()" style="margin:.5rem 0 .25rem">Iniciar sesión con Google</button>
+        <div style="font-size:12px;color:var(--text3)">Solo cuentas @harvesttekmex.com y @sfcos.com</div>
+      </div>
+      <div id="role-cards-box" class="hidden">
+        <div class="login-sub">Selecciona tu perfil para continuar</div>
+        <div class="role-cards">
+          <div class="role-card" onclick="enterAs('supervisor')">
+            <div class="role-icon supervisor">🚛</div>
+            <div class="role-name">Supervisor</div>
+            <div class="role-desc">Captura y seguimiento en piso</div>
+          </div>
+          <div class="role-card" onclick="enterAs('gerente')">
+            <div class="role-icon gerente">📊</div>
+            <div class="role-name">Gerente</div>
+            <div class="role-desc">Dashboard y visualización</div>
+          </div>
         </div>
-        <div class="role-card" onclick="enterAs('gerente')">
-          <div class="role-icon gerente">📊</div>
-          <div class="role-name">Gerente</div>
-          <div class="role-desc">Dashboard y visualización</div>
+        <div style="margin-top:.5rem;text-align:center;font-size:12px;color:var(--text3)">
+          <span id="login-who"></span> · <a href="#" onclick="signOutGoogle();return false">Cerrar sesión</a>
         </div>
       </div>
       <div style="margin-top:1.5rem;text-align:center">
@@ -334,14 +345,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script>
 // ── STATE ──
 let CFG = JSON.parse(localStorage.getItem('htm_cfg')||'{}');
-let db = null, role = null, unsub = null;
+let db = null, role = null, unsub = null, authUser = null;
+const ALLOWED_DOMAINS = ['harvesttekmex.com','sfcos.com'];
+function emailAllowed(email){ return !!email && ALLOWED_DOMAINS.includes(email.split('@')[1]?.toLowerCase()); }
 let CAT = { clientes:[], productos:{}, transportistas:[], destinos:[], destinosPorCliente:{} };
 let openPanelId = null; // tracks which camion detail is expanded
 let openSubs = new Set(); // tracks which '<camionId>_2' / '<camionId>_3' sub-sections are expanded
 const SHEETS_DEFAULT = '1ZNv4CsC2L40BC8ye6SvGap4cKOv9hcU13O6Gapxry_8';
+// Firebase web config (not a secret: public by design, protected by Firestore security rules, not by hiding this key)
+const FB_DEFAULT = {apiKey:'AIzaSyCy_vgYncZv48qTf5sPXgZeRdOSu_CgUE8',authDomain:'shipping-e1aa4.firebaseapp.com',project:'shipping-e1aa4'};
 const FALLBACK = {
   clientes:['Baloian','Boskovich','Braga Fresh','Family Fresh Farms','Fresh Express','Fresh Point','Fresh Truck Farms','Freshway','Fruvemex','Ocean Mist Farms','Taylor Farms'],
   productos:{'Baloian':["BAL - Pam Pak 48's","BAL - Pam Pak Hearts 12x3","BAL - Romaine 24s (FFF)","BAL - Cauliflower Wrap"],'Boskovich':["BSK - Bin CFR","BSK - Bin CFR Total"],'Braga Fresh':["BRG - Broccoli Floret RPC's","BRG - Naked Cauliflower","BRG - Organic Romaine CFR","BRG - Romaine 24's","BRG - Romaine CFR"],'Family Fresh Farms':["BAL - Pam Pak 48's","FFF - Cauliflower Wrap","FFF - Hearts 12x3","FFF - Romaine 24s"],'Fresh Express':["FEX - Bin CFR","FEX - Bin CFR Total","FEX - Hearts 12x3","FEX - Hearts 12x3 CANADA","FEX - Hearts 12x3 Total","FEX - Hearts Giant Eagle 12x3","FEX - Hearts NoBIU 12x3","FEX - Hearts Organic 12x3"],'Fresh Point':["FSP - Bin CFR","FSP - Romaine 24s"],'Fresh Truck Farms':["FTF - Cauliflower RPC (Test)"],'Freshway':["FEX - Bin CFR","FWY - Bin CFR"],'Fruvemex':["FMX - Bins Naked Cauliflower"],'Ocean Mist Farms':["OMF - Broccoli Crowns","OMF - Broccoli Crowns 64's","OMF - Broccoli Floret RPC's","OMF - Cauliflower","OMF - Hearts 12x3 #1 WOOD","OMF - Hearts 12x3 CHEP","OMF - Hearts 8x3 CHEP","OMF - Hearts 8x3 CHEP Total"],'Taylor Farms':["TAY - Cauliflower Naked","TAY - Romaine RPC","TAY - Romaine RPC Organic","TAY - Snap pea RPC 55"]},
@@ -375,18 +391,41 @@ function saveConfig(){
 
 // ── FIREBASE ──
 function initFB(){
-  if(!CFG.apiKey||!CFG.project){ updateConnStatus('Sin Firebase — modo local'); return; }
+  const cfg={apiKey:CFG.apiKey||FB_DEFAULT.apiKey,project:CFG.project||FB_DEFAULT.project,auth:CFG.auth||FB_DEFAULT.authDomain};
+  if(!cfg.apiKey||!cfg.project){ updateConnStatus('Sin Firebase — modo local'); return; }
   try{
-    if(firebase.apps.length){ firebase.apps[0].delete().then(startFB); }else{ startFB(); }
-  }catch(e){ startFB(); }
+    if(firebase.apps.length){ firebase.apps[0].delete().then(()=>startFB(cfg)); }else{ startFB(cfg); }
+  }catch(e){ startFB(cfg); }
 }
-function startFB(){
+function startFB(cfg){
   try{
-    firebase.initializeApp({apiKey:CFG.apiKey,authDomain:CFG.auth||(CFG.project+'.firebaseapp.com'),projectId:CFG.project});
+    firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.auth||(cfg.project+'.firebaseapp.com'),projectId:cfg.project});
     db=firebase.firestore();
     updateConnStatus('Firebase conectado ✓');
+    firebase.auth().onAuthStateChanged(onAuthChanged);
+    firebase.auth().getRedirectResult().catch(e=>toast('Error de login: '+e.message,'error'));
   }catch(e){ db=null; updateConnStatus('Error Firebase: '+e.message); }
 }
+function onAuthChanged(user){
+  if(user && !emailAllowed(user.email)){
+    firebase.auth().signOut();
+    toast('Acceso restringido a cuentas @harvesttekmex.com y @sfcos.com','error');
+    user=null;
+  }
+  authUser=user;
+  const gate=document.getElementById('login-gate'), cards=document.getElementById('role-cards-box');
+  if(!gate||!cards)return;
+  if(user){
+    gate.classList.add('hidden'); cards.classList.remove('hidden');
+    const who=document.getElementById('login-who'); if(who)who.textContent=user.email;
+  } else {
+    gate.classList.remove('hidden'); cards.classList.add('hidden');
+  }
+}
+function signInGoogle(){
+  firebase.auth().signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+}
+function signOutGoogle(){ firebase.auth().signOut(); }
 function updateConnStatus(msg){
   ['conn-status','sup-conn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=msg;});
 }
