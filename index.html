@@ -422,8 +422,17 @@ function onAuthChanged(user){
     gate.classList.remove('hidden'); cards.classList.add('hidden');
   }
 }
+function isStandalonePWA(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone; }
 function signInGoogle(){
-  firebase.auth().signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+  const provider=new firebase.auth.GoogleAuthProvider();
+  if(isStandalonePWA()){ firebase.auth().signInWithRedirect(provider); return; }
+  firebase.auth().signInWithPopup(provider).catch(e=>{
+    if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'||e.code==='auth/operation-not-supported-in-this-environment'){
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      toast('Error de login: '+e.message,'error');
+    }
+  });
 }
 function signOutGoogle(){ firebase.auth().signOut(); }
 function updateConnStatus(msg){
