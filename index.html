@@ -979,7 +979,7 @@ async function loadDashboard(){
     }
   }
   const hoy=today();
-  const ayerArr=all.filter(c=>c.fecha<hoy);
+  const ayerArr=all.filter(c=>c.fecha<hoy && !c.despachado);
   const hoyArr=all.filter(c=>c.fecha===hoy);
 
   document.getElementById('k-hoy').textContent=hoyArr.length;
