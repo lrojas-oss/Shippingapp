@@ -132,10 +132,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .dash-section{padding:1rem 1.25rem;}
 .dash-section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .dash-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-.transport-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.5rem;}
-.transport-chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
-.transport-chip strong{font-family:var(--mono);}
-.transport-pct{color:var(--text3);font-size:11px;}
+.transport-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:4px;}
+.transport-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.transport-block-header{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:13px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.transport-block-header span:last-child{font-weight:400;font-size:11px;color:var(--text3);}
+.transport-block-line{display:flex;gap:8px;font-size:12px;padding:3px 0;color:var(--text2);}
+.transport-block-line .mono{color:var(--text3);min-width:12px;}
 .dash-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
 .dash-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg2);}
 .dash-table thead th{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
@@ -323,10 +325,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="kpi-card"><div class="kpi-label">Pend. cruce</div><div class="kpi-value" id="k-pendientes">–</div></div>
   </div>
   <div class="dash-section">
-    <div class="dash-section-title">Por transportista</div>
-    <div class="transport-grid" id="transport-grid"><span style="color:var(--text3);font-size:13px">–</span></div>
-  </div>
-  <div class="dash-section">
     <div class="dash-section-title">Carga de ayer / pendientes de días anteriores</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
       <th>Fecha</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
@@ -341,6 +339,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
     </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+  </div>
+  <div class="dash-section">
+    <div class="dash-section-title">Despachados</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--text3)">Fecha</span>
+      <input type="date" id="desp-fecha" onchange="loadDespachados()"/>
+      <button class="btn btn-outline btn-sm" onclick="loadDespachados()">↻</button>
+      <button class="btn btn-outline btn-sm" onclick="exportDespachadosHistorial()">↓ Historial completo (Excel/CSV)</button>
+    </div>
+    <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
+      <th>Fecha</th><th>Hora</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th><th>Cruce</th>
+    </tr></thead><tbody id="tbody-despachados"><tr class="empty-row"><td colspan="11">Cargando...</td></tr></tbody></table></div>
+  </div>
+  <div class="dash-section">
+    <div class="dash-section-title">Detalle por transportista</div>
+    <div class="transport-detail-grid" id="transport-detail-grid"><span style="color:var(--text3);font-size:13px">–</span></div>
   </div>
 </div>
 
@@ -484,7 +499,9 @@ async function enterAs(r){
   } else {
     document.getElementById('ger-desde').value=yesterday();
     document.getElementById('ger-hasta').value=today();
+    document.getElementById('desp-fecha').value=today();
     loadDashboard();
+    loadDespachados();
   }
 }
 function logout(){ if(unsub){unsub();unsub=null;} openPanelId=null; role=null; showScr('login-screen'); }
@@ -869,14 +886,14 @@ function cambiarRol(){
 
 async function toggleFac(id,btn){
   if(btn.classList.contains('done'))return;
-  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Sí — '+t;
+  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Sí';
   await updF(id,'facturado',true); await updF(id,'facturadoAt',t);
 }
 
 async function toggleDes(id,btn){
   if(btn.classList.contains('done'))return;
-  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Despachado — '+t;
-  await updF(id,'despachado',true); await updF(id,'horaDespacho',t);
+  const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Despachado';
+  await updF(id,'despachado',true); await updF(id,'despachadoFecha',today()); await updF(id,'horaDespacho',t);
 }
 
 async function toggleCruce(id,btn){
@@ -956,8 +973,8 @@ async function loadDashboard(){
       all=snap.docs.map(d=>({id:d.id,...d.data()}));
     }catch(e){ console.warn(e); toast('No se pudo cargar el dashboard: '+e.message,'error'); }
   } else {
-    for(let d=new Date(desde);d<=new Date(hasta);d.setDate(d.getDate()+1)){
-      const k='htm_'+d.toISOString().slice(0,10);
+    for(let d=new Date(desde+'T00:00:00');d<=new Date(hasta+'T00:00:00');d.setDate(d.getDate()+1)){
+      const k='htm_'+localYMD(d);
       all.push(...JSON.parse(localStorage.getItem(k)||'[]'));
     }
   }
@@ -971,11 +988,7 @@ async function loadDashboard(){
   document.getElementById('k-cruzados').textContent=all.filter(c=>c.cruceListo).length;
   document.getElementById('k-pendientes').textContent=all.filter(c=>!c.cruceListo).length;
 
-  const tc={};
-  all.forEach(c=>{ const t=c.transportista||'Sin asignar'; tc[t]=(tc[t]||0)+1; });
-  const tot=all.length||1;
-  document.getElementById('transport-grid').innerHTML=Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`
-    <div class="transport-chip"><strong>${t}</strong><span>${n}</span><span class="transport-pct">${Math.round(n/tot*100)}%</span></div>`).join('')||'<span style="color:var(--text3)">Sin datos</span>';
+  renderTransportDetail(all);
 
   fillTabla('tbody-ayer',ayerArr);
   fillTabla('tbody-hoy',hoyArr);
@@ -1016,6 +1029,86 @@ function fillTabla(tid,list){
   }).join('');
 }
 
+function renderTransportDetail(all){
+  const groups={};
+  all.forEach(c=>{ const t=c.transportista||'Sin asignar'; (groups[t]=groups[t]||[]).push(c); });
+  const entries=Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  document.getElementById('transport-detail-grid').innerHTML = entries.length ? entries.map(([t,list])=>`
+    <div class="transport-block">
+      <div class="transport-block-header"><span>${t}</span><span>${list.length} camión${list.length===1?'':'es'}</span></div>
+      ${list.map(c=>{
+        const o=(c.ordenes||[{}])[0]||{};
+        return `<div class="transport-block-line"><span class="mono">1</span><span>${o.cliente||'–'}</span><span style="color:var(--text3)">${o.destino||'–'}</span></div>`;
+      }).join('')}
+    </div>`).join('') : '<span style="color:var(--text3);font-size:13px">Sin datos</span>';
+}
+
+// ── DESPACHADOS ──
+async function loadDespachados(){
+  const fecha=document.getElementById('desp-fecha').value||today();
+  document.getElementById('desp-fecha').value=fecha;
+  let list=[];
+  if(db){
+    try{
+      const snap=await db.collection('programas').where('despachado','==',true).get();
+      list=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>(c.despachadoFecha||c.fecha)===fecha);
+    }catch(e){ console.warn(e); toast('No se pudo cargar despachados: '+e.message,'error'); }
+  } else {
+    list=(JSON.parse(localStorage.getItem('htm_'+fecha)||'[]')).filter(c=>c.despachado);
+  }
+  fillDespachadosTabla(list);
+}
+
+function fillDespachadosTabla(list){
+  const tb=document.getElementById('tbody-despachados');
+  if(!list.length){ tb.innerHTML='<tr class="empty-row"><td colspan="11">Sin despachos en esta fecha</td></tr>'; return; }
+  const rows=[];
+  list.forEach(c=>{
+    const ords=c.ordenes||[{}];
+    ords.forEach(o=>{
+      const prods=o.productos||[{}];
+      prods.forEach(p=>{
+        rows.push({
+          fecha:fmtD(c.despachadoFecha||c.fecha),hora:c.horaDespacho||'–',
+          cliente:o.cliente||'–',qt:o.qt||'–',prod:p.producto||'–',tar:p.tarimas||'–',dest:o.destino||'–',
+          trans:c.transportista||'–',eBox:c.ecoBox||'–',eTruck:c.ecoTruck||'–',
+          cru:c.cruceListo,cruAt:c.horaCruce||''
+        });
+      });
+    });
+  });
+  tb.innerHTML=rows.map(r=>`<tr>
+      <td class="mono">${r.fecha}</td><td class="mono">${r.hora}</td><td>${r.cliente}</td><td class="mono">${r.qt}</td>
+      <td>${r.prod}</td><td class="mono">${r.tar}</td><td>${r.dest}</td>
+      <td>${r.trans}</td><td class="mono">${r.eBox}</td><td class="mono">${r.eTruck}</td>
+      <td><span class="status-pill ${r.cru?'status-cruzado':'status-cruce-pendiente'}">${r.cru?r.cruAt:'Pendiente'}</span></td>
+    </tr>`).join('');
+}
+
+async function exportDespachadosHistorial(){
+  if(!db){ toast('Requiere conexión a Firebase','error'); return; }
+  showLoad('Preparando historial...');
+  try{
+    const snap=await db.collection('programas').where('despachado','==',true).get();
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const header=['Fecha despacho','Hora despacho','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce'];
+    const rows=[header];
+    all.sort((a,b)=>(a.despachadoFecha||a.fecha||'').localeCompare(b.despachadoFecha||b.fecha||'')).forEach(c=>{
+      (c.ordenes||[{}]).forEach(o=>{
+        (o.productos||[{}]).forEach(p=>{
+          rows.push([c.despachadoFecha||c.fecha||'',c.horaDespacho||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.cruceListo?'Sí':'No',c.horaCruce||'']);
+        });
+      });
+    });
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+    a.download='HTM_Shipping_Despachados_Historial_'+today()+'.csv'; a.click();
+    toast('Historial completo exportado','success');
+  }catch(e){ toast('Error al exportar: '+e.message,'error'); }
+  hideLoad();
+}
+
 function exportCSV(){
   const header=['Fecha','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
   const rows=[header];
@@ -1044,7 +1137,7 @@ function toast(msg,type){
 
 document.addEventListener('DOMContentLoaded',()=>{
   initFB(); hideLoad(); setDateLabels();
-  setInterval(()=>{ if(role==='gerente')loadDashboard(); },30000);
+  setInterval(()=>{ if(role==='gerente'){loadDashboard();loadDespachados();} },30000);
 });
 
 if ('serviceWorker' in navigator) {
