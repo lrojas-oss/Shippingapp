@@ -158,9 +158,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sup-table .expand-icon{font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block;}
 .sup-table .expand-icon.open{transform:rotate(90deg);}
 .detail-row td{padding:0!important;border-bottom:1px solid var(--border2);}
-.detail-panel{display:none;padding:16px;background:var(--bg2);border-top:1px solid var(--border);}
+.detail-panel{display:none;padding:16px;background:var(--bg2);border-top:1px solid var(--border);position:sticky;left:0;box-sizing:border-box;}
 .detail-panel.open{display:block;}
-@media(max-width:500px){.sup-table-wrap{margin:0 .75rem 1rem;}}
+@media(max-width:500px){.sup-table-wrap{margin:0 .75rem 1rem;}.detail-panel{padding:12px;}}
 /* LOADING */
 .loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
 .loading-spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
@@ -571,11 +571,22 @@ function renderCamiones(list,fecha){
     const panel=document.getElementById('dp-'+openPanelId);
     const icon=document.getElementById('ei-'+openPanelId);
     const row=document.getElementById('row-'+openPanelId);
-    if(panel){ panel.classList.add('open'); }
+    if(panel){ panel.classList.add('open'); sizeDetailPanel(panel); }
     if(icon){ icon.classList.add('open'); }
     if(row){ row.classList.add('expanded'); }
   }
 }
+
+function sizeDetailPanel(panel){
+  const wrap=document.querySelector('.sup-table-wrap');
+  if(wrap) panel.style.width=Math.min(wrap.clientWidth,800)+'px';
+}
+window.addEventListener('resize',()=>{
+  if(openPanelId){
+    const panel=document.getElementById('dp-'+openPanelId);
+    if(panel) sizeDetailPanel(panel);
+  }
+});
 
 function toggleDetail(id){
   const panel=document.getElementById('dp-'+id);
@@ -591,6 +602,9 @@ function toggleDetail(id){
     icon.classList.add('open');
     row.classList.add('expanded');
     openPanelId=id;
+    sizeDetailPanel(panel);
+    const wrap=document.querySelector('.sup-table-wrap');
+    if(wrap) wrap.scrollLeft=0;
     setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
   } else {
     openPanelId=null;
