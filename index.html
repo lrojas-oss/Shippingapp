@@ -367,8 +367,9 @@ const FALLBACK = {
   destinosPorCliente:{'Baloian':['Thermal'],'Boskovich':['Oxnard'],'Braga Fresh':['Dole Soledad','Gonzales 180 Kath','Gonzalez Alta','PENDIENTE','Spreckles'],'Family Fresh Farms':['Legacy Yuma'],'Fresh Express':['Salinas','Yuma'],'Fresh Point':['Legacy Yuma'],'Freshway':['Legacy Yuma'],'Fruvemex':['Nacional'],'Ocean Mist Farms':['Castroville','Coachella'],'Taylor Farms':['Gonzales CA','Taylor Cuervos']}
 };
 
-function today(){ return new Date().toISOString().slice(0,10); }
-function yesterday(){ const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10); }
+function localYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today(){ return localYMD(new Date()); }
+function yesterday(){ const d=new Date();d.setDate(d.getDate()-1);return localYMD(d); }
 function fmtD(s){ if(!s)return'–';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y; }
 function nowTime(){ return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
 
@@ -953,7 +954,7 @@ async function loadDashboard(){
     try{
       const snap=await db.collection('programas').where('fecha','>=',desde).where('fecha','<=',hasta).orderBy('fecha','asc').orderBy('createdAt','asc').get();
       all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    }catch(e){ console.warn(e); }
+    }catch(e){ console.warn(e); toast('No se pudo cargar el dashboard: '+e.message,'error'); }
   } else {
     for(let d=new Date(desde);d<=new Date(hasta);d.setDate(d.getDate()+1)){
       const k='htm_'+d.toISOString().slice(0,10);
