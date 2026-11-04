@@ -1105,7 +1105,7 @@ function despCard(c){
   const resumen=ords.map(o=>{
     const prods=o.productos||[{}];
     const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
-    return `${o.cliente||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
+    return `${o.cliente||'–'} · QT ${o.qt||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
   }).join(' · ');
   return `<div class="desp-card">
     <span class="desp-when">${fmtD(c.despachadoFecha||c.fecha)} ${c.horaDespacho||''}</span>
