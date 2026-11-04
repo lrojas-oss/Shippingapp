@@ -146,6 +146,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .dash-table tbody tr:hover td{background:var(--bg);}
 .dash-table .mono{font-family:var(--mono);font-size:11px;}
 .dash-table .empty-row td{text-align:center;color:var(--text3);padding:2rem;font-style:italic;}
+/* DESPACHADOS - infinite scroll history, fixed frame (vacuumlog-style) */
+.desp-history{max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg2);}
+.desp-card{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;}
+.desp-card:last-child{border-bottom:none;}
+.desp-card:hover{background:var(--bg);}
+.desp-card .desp-when{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:118px;}
+.desp-card .desp-main{font-weight:500;font-size:13px;flex:1;min-width:160px;}
+.desp-card .desp-sub{font-size:12px;color:var(--text2);}
+.desp-card .desp-tag{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.desp-empty,.desp-end,.desp-loading{text-align:center;color:var(--text3);padding:1.5rem;font-style:italic;font-size:13px;}
 /* SUPERVISOR COMPACT TABLE */
 .sup-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin:0 1.25rem 1rem;}
 .sup-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg2);}
@@ -343,15 +353,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div class="dash-section">
     <div class="dash-section-title">Despachados</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <span style="font-size:12px;color:var(--text3)">Fecha</span>
+      <span style="font-size:12px;color:var(--text3)">Filtrar por fecha (opcional)</span>
       <input type="date" id="desp-fecha" onchange="loadDespachados()"/>
+      <button class="btn btn-outline btn-sm" id="desp-clear" onclick="document.getElementById('desp-fecha').value='';loadDespachados()">Ver todo</button>
       <button class="btn btn-outline btn-sm" onclick="loadDespachados()">↻</button>
       <button class="btn btn-outline btn-sm" onclick="exportDespachadosHistorial()">↓ Historial completo (Excel/CSV)</button>
     </div>
-    <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Hora</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
-      <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-despachados"><tr class="empty-row"><td colspan="11">Cargando...</td></tr></tbody></table></div>
+    <div class="desp-history" id="desp-history">
+      <div class="desp-empty">Cargando...</div>
+    </div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Detalle por transportista</div>
@@ -499,7 +509,6 @@ async function enterAs(r){
   } else {
     document.getElementById('ger-desde').value=yesterday();
     document.getElementById('ger-hasta').value=today();
-    document.getElementById('desp-fecha').value=today();
     loadDashboard();
     loadDespachados();
   }
@@ -1057,46 +1066,66 @@ function renderTransportDetail(all){
     </div>`).join('') : '<span style="color:var(--text3);font-size:13px">Sin datos</span>';
 }
 
-// ── DESPACHADOS ──
+// ── DESPACHADOS (historial de scroll infinito, estilo vacuumlog) ──
+let despAll=[], despShown=0;
+const DESP_PAGE=20;
+let despScrollBound=false;
+
 async function loadDespachados(){
-  const fecha=document.getElementById('desp-fecha').value||today();
-  document.getElementById('desp-fecha').value=fecha;
+  const fecha=document.getElementById('desp-fecha').value; // vacío = historial completo
+  const box=document.getElementById('desp-history');
+  const prevScroll=box.scrollTop, prevShown=despShown;
+  if(!prevShown) box.innerHTML='<div class="desp-loading">Cargando...</div>';
   let list=[];
   if(db){
     try{
       const snap=await db.collection('programas').where('despachado','==',true).get();
-      list=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>(c.despachadoFecha||c.fecha)===fecha);
+      list=snap.docs.map(d=>({id:d.id,...d.data()}));
     }catch(e){ console.warn(e); toast('No se pudo cargar despachados: '+e.message,'error'); }
   } else {
-    list=(JSON.parse(localStorage.getItem('htm_'+fecha)||'[]')).filter(c=>c.despachado);
+    list=(JSON.parse(localStorage.getItem('htm_'+(fecha||today()))||'[]')).filter(c=>c.despachado);
   }
-  fillDespachadosTabla(list);
+  if(fecha) list=list.filter(c=>(c.despachadoFecha||c.fecha)===fecha);
+  list.sort((a,b)=>((b.despachadoFecha||b.fecha||'')+(b.horaDespacho||'')).localeCompare((a.despachadoFecha||a.fecha||'')+(a.horaDespacho||'')));
+  despAll=list; despShown=0;
+  box.innerHTML='';
+  if(!despAll.length){ box.innerHTML='<div class="desp-empty">Sin despachos registrados</div>'; return; }
+  do{ renderDespPage(); }while(despShown<prevShown && despShown<despAll.length);
+  if(!despScrollBound){
+    box.addEventListener('scroll',()=>{
+      if(box.scrollTop+box.clientHeight>box.scrollHeight-80) renderDespPage();
+    });
+    despScrollBound=true;
+  }
+  box.scrollTop=prevScroll;
 }
 
-function fillDespachadosTabla(list){
-  const tb=document.getElementById('tbody-despachados');
-  if(!list.length){ tb.innerHTML='<tr class="empty-row"><td colspan="11">Sin despachos en esta fecha</td></tr>'; return; }
-  const rows=[];
-  list.forEach(c=>{
-    const ords=c.ordenes||[{}];
-    ords.forEach(o=>{
-      const prods=o.productos||[{}];
-      prods.forEach(p=>{
-        rows.push({
-          fecha:fmtD(c.despachadoFecha||c.fecha),hora:c.horaDespacho||'–',
-          cliente:o.cliente||'–',qt:o.qt||'–',prod:p.producto||'–',tar:p.tarimas||'–',dest:o.destino||'–',
-          trans:c.transportista||'–',eBox:c.ecoBox||'–',eTruck:c.ecoTruck||'–',
-          cru:c.cruceListo,cruAt:c.horaCruce||''
-        });
-      });
-    });
-  });
-  tb.innerHTML=rows.map(r=>`<tr>
-      <td class="mono">${r.fecha}</td><td class="mono">${r.hora}</td><td>${r.cliente}</td><td class="mono">${r.qt}</td>
-      <td>${r.prod}</td><td class="mono">${r.tar}</td><td>${r.dest}</td>
-      <td>${r.trans}</td><td class="mono">${r.eBox}</td><td class="mono">${r.eTruck}</td>
-      <td><span class="status-pill ${r.cru?'status-cruzado':'status-cruce-pendiente'}">${r.cru?r.cruAt:'Pendiente'}</span></td>
-    </tr>`).join('');
+function despCard(c){
+  const ords=c.ordenes||[{}];
+  const resumen=ords.map(o=>{
+    const prods=o.productos||[{}];
+    const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
+    return `${o.cliente||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
+  }).join(' · ');
+  return `<div class="desp-card">
+    <span class="desp-when">${fmtD(c.despachadoFecha||c.fecha)} ${c.horaDespacho||''}</span>
+    <span class="desp-main">${resumen}</span>
+    <span class="desp-sub">${c.transportista||'Sin transportista'}</span>
+    <span class="desp-tag">Caja ${c.ecoBox||'–'} / Truck ${c.ecoTruck||'–'}</span>
+    <span class="status-pill ${c.cruceListo?'status-cruzado':'status-cruce-pendiente'}">${c.cruceListo?('Cruzado '+(c.horaCruce||'')):'Cruce pendiente'}</span>
+  </div>`;
+}
+
+function renderDespPage(){
+  const box=document.getElementById('desp-history');
+  const end=document.getElementById('desp-end');
+  if(end) end.remove();
+  const next=despAll.slice(despShown,despShown+DESP_PAGE);
+  box.insertAdjacentHTML('beforeend',next.map(despCard).join(''));
+  despShown+=next.length;
+  if(despShown>=despAll.length){
+    box.insertAdjacentHTML('beforeend','<div class="desp-end" id="desp-end">— fin del historial —</div>');
+  }
 }
 
 async function exportDespachadosHistorial(){
