@@ -175,7 +175,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   .dash-table thead th{font-size:11px;padding:8px 8px;}
   .dash-table tbody td{padding:8px 8px;}
   .dash-table .mono{font-size:12px;}
-  .desp-table tbody td{padding:6px 8px;}
+  .desp-table tbody td{padding:6px 6px;}
+  .desp-table thead th{padding:8px 6px;}
   .status-pill{font-size:12px;}
   .field-group label{font-size:12px;}
   .field-group input,.field-group select{font-size:14px;}
@@ -432,7 +433,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="desp-history" id="desp-history">
       <table class="dash-table desp-table"><thead><tr>
         <th>Despacho</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
-        <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th><th>Cruce</th><th>Entregado</th>
+        <th>Transportista</th><th>Caja</th><th>Truck</th><th>Cruce</th><th>Entregado</th>
       </tr></thead><tbody id="desp-tbody"><tr class="empty-row"><td colspan="12">Cargando...</td></tr></tbody></table>
     </div>
   </div>
@@ -1471,12 +1472,12 @@ function despRow(c){
   const prodTitle=esc(prods.map(p=>p.producto+' ('+(p.tarimas||0)+')').join(', '));
   const ent=c.entregado
     ?`<button class="btn-entregado done" onclick="toggleEntregado('${c.id}')" title="Marcado por ${esc(c.entregadoPor||'')}">✓ ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')}</button>`
-    :`<button class="btn-entregado" onclick="toggleEntregado('${c.id}')">Marcar entregado</button>`;
+    :`<button class="btn-entregado" onclick="toggleEntregado('${c.id}')">☐ Entregado</button>`;
   return `<tr id="desp-${c.id}">
-    <td class="mono" style="white-space:nowrap">${fmtD(c.despachadoFecha||c.fecha)} ${esc(c.horaDespacho||'')}</td>
+    <td class="mono" style="white-space:nowrap">${fmtCorta(c.despachadoFecha||c.fecha)} ${esc(c.horaDespacho||'')}</td>
     <td class="desp-strong">${esc(o0.cliente||'–')}${masCli}</td>
     <td class="mono">${esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–')}</td>
-    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${prodTitle}">${prodTxt}</td>
+    <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${prodTitle}">${prodTxt}</td>
     <td class="mono">${tar||'–'}</td>
     <td>${esc(o0.destino||'–')}</td>
     <td class="mono" style="white-space:nowrap">${fmtEntrega(o0.fechaEntrega)}</td>
