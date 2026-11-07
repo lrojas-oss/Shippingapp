@@ -75,26 +75,40 @@ function leerOrdenesCache_(desde, hasta) {
 }
 
 function leerOrdenes_(desde, hasta) {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const tz = ss.getSpreadsheetTimeZone();
+  // Lectura con la API de Sheets (servicio avanzado "Sheets"): funciona con permiso de solo lectura.
+  const q = function (n) { return "'" + n.replace(/'/g, "''") + "'"; };
+  const meta = Sheets.Spreadsheets.get(SHEET_ID, { fields: 'sheets.properties.title' });
+  const nombres = meta.sheets.map(function (s) { return s.properties.title; })
+    .filter(function (n) { return EXCLUIR.indexOf(n.trim()) < 0; });
+  const encs = Sheets.Spreadsheets.Values.batchGet(SHEET_ID, { ranges: nombres.map(function (n) { return q(n) + '!1:1'; }) }).valueRanges;
+  const validas = [];
+  encs.forEach(function (vr, i) {
+    const enc = ((vr.values || [])[0] || []).map(function (h) { return String(h).trim(); });
+    if (REQUERIDOS.every(function (h) { return enc.indexOf(h) >= 0; })) validas.push({ nombre: nombres[i], enc: enc });
+  });
+  if (!validas.length) return { hojas: [], ordenes: [] };
+  const datos = Sheets.Spreadsheets.Values.batchGet(SHEET_ID, {
+    ranges: validas.map(function (v) { return q(v.nombre) + '!A2:AZ'; }),
+    valueRenderOption: 'UNFORMATTED_VALUE',
+    dateTimeRenderOption: 'SERIAL_NUMBER'
+  }).valueRanges;
+  const FECHAS = ['Harvest Date', 'Ship Date', 'Deliver Date'];
   const filas = [];
-  const hojas = [];
-  ss.getSheets().forEach(function (sh) {
-    const nombre = sh.getName();
-    if (EXCLUIR.indexOf(nombre.trim()) >= 0) return;
-    const lastRow = sh.getLastRow(), lastCol = sh.getLastColumn();
-    if (lastRow < 2 || lastCol < 5) return;
-    const enc = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) { return String(h).trim(); });
-    if (!REQUERIDOS.every(function (h) { return enc.indexOf(h) >= 0; })) return;
-    hojas.push(nombre);
-    const valores = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
-    valores.forEach(function (v, i) {
-      const reg = { _hoja: nombre, _fila: i + 2 };
-      enc.forEach(function (h, j) { if (h) reg[h] = v[j]; });
+  datos.forEach(function (vr, i) {
+    const nombre = validas[i].nombre, enc = validas[i].enc;
+    (vr.values || []).forEach(function (v, k) {
+      const reg = { _hoja: nombre, _fila: k + 2 };
+      enc.forEach(function (h, j) {
+        if (!h) return;
+        let x = v[j];
+        // Fechas de Sheets vienen como número de serie (días desde 30/12/1899)
+        if (FECHAS.indexOf(h) >= 0 && typeof x === 'number') x = new Date(Math.round((x - 25569) * 864e5));
+        reg[h] = x;
+      });
       filas.push(reg);
     });
   });
-  return { hojas: hojas, ordenes: agrupar_(filas, tz, desde, hasta) };
+  return { hojas: validas.map(function (v) { return v.nombre; }), ordenes: agrupar_(filas, 'UTC', desde, hasta) };
 }
 
 // ── Lógica de agrupación (función pura, probada fuera de Apps Script) ──
