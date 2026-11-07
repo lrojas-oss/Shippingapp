@@ -162,7 +162,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 #desp-end td{padding:10px!important;font-size:12px;}
 .btn-entregado{font-size:12px;padding:4px 10px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap;}
 .btn-entregado:hover{border-color:var(--accent);color:var(--accent);}
-.btn-entregado.done{background:var(--green-bg);color:var(--green);border-color:#6ee7b7;}
+.btn-entregado.done{background:var(--green-bg);color:var(--green);border-color:#6ee7b7;font-weight:700;font-size:13px;letter-spacing:.01em;}
 .desp-filtros label{font-size:12px;color:var(--text2);display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
 /* COMPUTADORA: letra +1 y columnas más juntas (no afecta teléfonos/tablets) */
 @media(min-width:1024px){
@@ -185,6 +185,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   .kpi-label{font-size:12px;}
   .dash-section-title{font-size:13px;}
   .btn-entregado{font-size:13px;}
+  .btn-entregado.done{font-size:14px;}
 }
 /* SUPERVISOR COMPACT TABLE */
 .sup-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin:0 1.25rem 1rem;}
@@ -1471,7 +1472,7 @@ function despRow(c){
   const prodTxt=prods.length?esc(prods[0].producto)+(prods.length>1?` <span style="color:var(--text3)">+${prods.length-1}</span>`:''):'–';
   const prodTitle=esc(prods.map(p=>p.producto+' ('+(p.tarimas||0)+')').join(', '));
   const ent=c.entregado
-    ?`<button class="btn-entregado done" onclick="toggleEntregado('${c.id}')" title="Marcado por ${esc(c.entregadoPor||'')}">✓ ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')}</button>`
+    ?`<button class="btn-entregado done" onclick="toggleEntregado('${c.id}')" title="Entregado ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')} · marcado por ${esc(c.entregadoPor||'')}">✓ Entregado</button>`
     :`<button class="btn-entregado" onclick="toggleEntregado('${c.id}')">☐ Entregado</button>`;
   return `<tr id="desp-${c.id}">
     <td class="mono" style="white-space:nowrap">${fmtCorta(c.despachadoFecha||c.fecha)} ${esc(c.horaDespacho||'')}</td>
