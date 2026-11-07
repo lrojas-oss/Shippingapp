@@ -156,6 +156,35 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .desp-card .desp-sub{font-size:12px;color:var(--text2);}
 .desp-card .desp-tag{font-size:11px;color:var(--text3);font-family:var(--mono);}
 .desp-empty,.desp-end,.desp-loading{text-align:center;color:var(--text3);padding:1.5rem;font-style:italic;font-size:13px;}
+.desp-history .dash-table thead th{position:sticky;top:0;z-index:1;}
+.desp-table tbody td{padding:6px 10px;}
+.desp-table td.desp-strong{font-weight:500;}
+#desp-end td{padding:10px!important;font-size:12px;}
+.btn-entregado{font-size:12px;padding:4px 10px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:var(--font);font-weight:500;white-space:nowrap;}
+.btn-entregado:hover{border-color:var(--accent);color:var(--accent);}
+.btn-entregado.done{background:var(--green-bg);color:var(--green);border-color:#6ee7b7;}
+.desp-filtros label{font-size:12px;color:var(--text2);display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+/* COMPUTADORA: letra +1 y columnas más juntas (no afecta teléfonos/tablets) */
+@media(min-width:1024px){
+  body{font-size:15px;}
+  .sup-table{font-size:14px;}
+  .sup-table thead th{font-size:11px;padding:9px 8px;}
+  .sup-table tbody td{padding:10px 8px;}
+  .sup-table .mono{font-size:12px;}
+  .dash-table{font-size:13px;}
+  .dash-table thead th{font-size:11px;padding:8px 8px;}
+  .dash-table tbody td{padding:8px 8px;}
+  .dash-table .mono{font-size:12px;}
+  .desp-table tbody td{padding:6px 8px;}
+  .status-pill{font-size:12px;}
+  .field-group label{font-size:12px;}
+  .field-group input,.field-group select{font-size:14px;}
+  .btn{font-size:14px;}
+  .btn-sm{font-size:13px;}
+  .kpi-label{font-size:12px;}
+  .dash-section-title{font-size:13px;}
+  .btn-entregado{font-size:13px;}
+}
 /* SUPERVISOR COMPACT TABLE */
 .sup-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin:0 1.25rem 1rem;}
 .sup-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg2);}
@@ -334,7 +363,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <table class="sup-table">
         <thead><tr>
           <th style="width:28px"></th>
-          <th>#</th><th>Cliente</th><th>SO</th><th>Producto</th>
+          <th>#</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Entrega</th>
           <th>Transportista</th><th>Eco Caja</th><th>Rampa</th>
           <th>Estatus Carga</th><th>Despacho</th><th>Cruce</th>
           <th></th>
@@ -372,22 +401,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="kpi-card"><div class="kpi-label">Despachados</div><div class="kpi-value" id="k-despachados">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Cruzados</div><div class="kpi-value" id="k-cruzados">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Pend. cruce</div><div class="kpi-value" id="k-pendientes">–</div></div>
+    <div class="kpi-card"><div class="kpi-label">Entregados</div><div class="kpi-value" id="k-entregados">–</div></div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Carga de ayer / pendientes de días anteriores</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-ayer"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+    </tr></thead><tbody id="tbody-ayer"><tr class="empty-row"><td colspan="14">Cargando...</td></tr></tbody></table></div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Programa de hoy</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
+    </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="14">Cargando...</td></tr></tbody></table></div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Despachados</div>
@@ -397,9 +427,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <button class="btn btn-outline btn-sm" id="desp-clear" onclick="document.getElementById('desp-fecha').value='';loadDespachados()">Ver todo</button>
       <button class="btn btn-outline btn-sm" onclick="loadDespachados()">↻</button>
       <button class="btn btn-outline btn-sm" onclick="exportDespachadosHistorial()">↓ Historial completo (Excel/CSV)</button>
+      <span class="desp-filtros"><label><input type="checkbox" id="desp-solo-pend" onchange="loadDespachados()"/> Solo pendientes de entrega</label></span>
     </div>
     <div class="desp-history" id="desp-history">
-      <div class="desp-empty">Cargando...</div>
+      <table class="dash-table desp-table"><thead><tr>
+        <th>Despacho</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
+        <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th><th>Cruce</th><th>Entregado</th>
+      </tr></thead><tbody id="desp-tbody"><tr class="empty-row"><td colspan="12">Cargando...</td></tr></tbody></table>
     </div>
   </div>
   <div class="dash-section">
@@ -435,6 +469,9 @@ function localYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart
 function today(){ return localYMD(new Date()); }
 function yesterday(){ const d=new Date();d.setDate(d.getDate()-1);return localYMD(d); }
 function fmtD(s){ if(!s)return'–';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y; }
+const DIAS_CORTOS=['dom','lun','mar','mié','jue','vie','sáb'];
+function fmtEntrega(s){ if(!s) return '–'; const p=s.split('-'); if(p.length<3) return esc(s); const d=new Date(s+'T12:00:00'); return DIAS_CORTOS[d.getDay()]+' '+p[2]+'/'+p[1]; }
+function entregaCamion(c){ const fs=[...new Set((c.ordenes||[]).map(o=>o.fechaEntrega).filter(Boolean))]; return fs.length?fs.map(fmtEntrega).join(', '):'–'; }
 function nowTime(){ return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
 
 // ── CONFIG ──
@@ -566,7 +603,7 @@ async function loadPrograma(){
   const fecha=document.getElementById('sup-fecha').value; if(!fecha)return;
   openPanelId=null;
   const tbody=document.getElementById('camiones-tbody');
-  if(tbody) tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
+  if(tbody) tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
   if(unsub){unsub();unsub=null;}
   if(db){
     unsub=db.collection('programas').where('fecha','==',fecha).orderBy('createdAt','asc')
@@ -587,7 +624,7 @@ async function loadPrograma(){
 function renderCamiones(list,fecha){
   const tbody=document.getElementById('camiones-tbody');
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "📥 Importar de ventas" o "+ Camión manual".</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "📥 Importar de ventas" o "+ Camión manual".</td></tr>`;
     return;
   }
   tbody.innerHTML='';
@@ -604,6 +641,7 @@ function renderCamiones(list,fecha){
       <td style="font-weight:500">${ventasBadge(c)}${esc(ords[0]?.cliente||'–')}${ords.length>1?` <span style="color:var(--text3);font-weight:400">+${ords.length-1}</span>`:''}</td>
       <td class="mono">${esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–')}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${esc(ords.flatMap(o=>(o.productos||[]).map(p=>p.producto+' ('+(p.tarimas||0)+')')).join(', '))}">${esc((ords[0]?.productos||[{}])[0]?.producto||'–')}${prodExtra(ords)}</td>
+      <td class="mono" style="white-space:nowrap">${entregaCamion(c)}</td>
       <td>${c.transportista||'–'}</td>
       <td class="mono">${c.ecoBox||'–'}</td>
       <td class="mono">${c.rampa||'–'}</td>
@@ -615,7 +653,7 @@ function renderCamiones(list,fecha){
     tbody.appendChild(tr);
     const trD=document.createElement('tr');
     trD.className='detail-row'; trD.id='drow-'+c.id;
-    trD.innerHTML=`<td colspan="12"><div class="detail-panel" id="dp-${c.id}">${mkCardBody(c)}</div></td>`;
+    trD.innerHTML=`<td colspan="13"><div class="detail-panel" id="dp-${c.id}">${mkCardBody(c)}</div></td>`;
     tbody.appendChild(trD);
   });
   // Restore open panel after re-render without triggering scroll/animation
@@ -1330,6 +1368,7 @@ async function loadDashboard(){
   document.getElementById('k-despachados').textContent=all.filter(c=>c.despachado).length;
   document.getElementById('k-cruzados').textContent=all.filter(c=>c.cruceListo).length;
   document.getElementById('k-pendientes').textContent=all.filter(c=>!c.cruceListo).length;
+  document.getElementById('k-entregados').textContent=all.filter(c=>c.entregado).length;
 
   renderTransportDetail(all);
 
@@ -1339,7 +1378,7 @@ async function loadDashboard(){
 
 function fillTabla(tid,list){
   const tb=document.getElementById(tid);
-  if(!list.length){ tb.innerHTML='<tr class="empty-row"><td colspan="13">Sin registros</td></tr>'; return; }
+  if(!list.length){ tb.innerHTML='<tr class="empty-row"><td colspan="14">Sin registros</td></tr>'; return; }
   const rows=[];
   list.forEach(c=>{
     const ords=c.ordenes||[{}];
@@ -1348,7 +1387,7 @@ function fillTabla(tid,list){
       prods.forEach(p=>{
         rows.push({
           fecha:fmtD(c.fecha),cliente:o.cliente||'–',qt:o.qt||'–',
-          prod:p.producto||'–',tar:p.tarimas||'–',dest:o.destino||'–',
+          prod:p.producto||'–',tar:p.tarimas||'–',dest:o.destino||'–',ent:fmtEntrega(o.fechaEntrega),
           trans:c.transportista||'–',eBox:c.ecoBox||'–',eTruck:c.ecoTruck||'–',
           sc:c.estatusCarga||'En espera',scAt:c.horaCargado||'',
           fac:c.facturado,facAt:c.facturadoAt||'',
@@ -1362,7 +1401,7 @@ function fillTabla(tid,list){
     const sc=r.sc==='En espera'?'espera':r.sc==='Cargando'?'cargando':r.sc==='Cargado'?'cargado':'fuera';
     return`<tr>
       <td class="mono">${r.fecha}</td><td>${r.cliente}</td><td class="mono">${r.qt}</td>
-      <td>${r.prod}</td><td class="mono">${r.tar}</td><td>${r.dest}</td>
+      <td>${r.prod}</td><td class="mono">${r.tar}</td><td>${r.dest}</td><td class="mono" style="white-space:nowrap">${r.ent}</td>
       <td>${r.trans}</td><td class="mono">${r.eBox}</td><td class="mono">${r.eTruck}</td>
       <td><span class="status-pill status-${sc}">${r.sc==='Cargado'&&r.scAt?'Cargado '+r.scAt:r.sc}</span></td>
       <td><span class="status-pill ${r.fac?'status-si':'status-pendiente'}">${r.fac?'✓ '+r.facAt:'Pendiente'}</span></td>
@@ -1395,7 +1434,8 @@ async function loadDespachados(){
   const fecha=document.getElementById('desp-fecha').value; // vacío = historial completo
   const box=document.getElementById('desp-history');
   const prevScroll=box.scrollTop, prevShown=despShown;
-  if(!prevShown) box.innerHTML='<div class="desp-loading">Cargando...</div>';
+  const tb=document.getElementById('desp-tbody');
+  if(!prevShown) tb.innerHTML='<tr class="empty-row"><td colspan="12">Cargando...</td></tr>';
   let list=[];
   if(db){
     try{
@@ -1406,10 +1446,11 @@ async function loadDespachados(){
     list=(JSON.parse(localStorage.getItem('htm_'+(fecha||today()))||'[]')).filter(c=>c.despachado);
   }
   if(fecha) list=list.filter(c=>(c.despachadoFecha||c.fecha)===fecha);
+  if(document.getElementById('desp-solo-pend')?.checked) list=list.filter(c=>!c.entregado);
   list.sort((a,b)=>((b.despachadoFecha||b.fecha||'')+(b.horaDespacho||'')).localeCompare((a.despachadoFecha||a.fecha||'')+(a.horaDespacho||'')));
   despAll=list; despShown=0;
-  box.innerHTML='';
-  if(!despAll.length){ box.innerHTML='<div class="desp-empty">Sin despachos registrados</div>'; return; }
+  tb.innerHTML='';
+  if(!despAll.length){ tb.innerHTML='<tr class="empty-row"><td colspan="12">Sin despachos registrados</td></tr>'; return; }
   do{ renderDespPage(); }while(despShown<prevShown && despShown<despAll.length);
   if(!despScrollBound){
     box.addEventListener('scroll',()=>{
@@ -1420,32 +1461,63 @@ async function loadDespachados(){
   box.scrollTop=prevScroll;
 }
 
-function despCard(c){
+function despRow(c){
   const ords=c.ordenes||[{}];
-  const resumen=ords.map(o=>{
-    const prods=o.productos||[{}];
-    const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
-    return `${o.cliente||'–'} · SO ${o.qt||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
-  }).join(' · ');
-  return `<div class="desp-card">
-    <span class="desp-when">${fmtD(c.despachadoFecha||c.fecha)} ${c.horaDespacho||''}</span>
-    <span class="desp-main">${resumen}</span>
-    <span class="desp-sub">${c.transportista||'Sin transportista'}</span>
-    <span class="desp-tag">Caja ${c.ecoBox||'–'} / Truck ${c.ecoTruck||'–'}</span>
-    <span class="status-pill ${c.cruceListo?'status-cruzado':'status-cruce-pendiente'}">${c.cruceListo?('Cruzado '+(c.horaCruce||'')):'Cruce pendiente'}</span>
-  </div>`;
+  const o0=ords[0]||{};
+  const prods=ords.flatMap(o=>(o.productos||[]).filter(p=>p.producto));
+  const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
+  const masCli=ords.length>1?` <span style="color:var(--text3);font-weight:400">+${ords.length-1}</span>`:'';
+  const prodTxt=prods.length?esc(prods[0].producto)+(prods.length>1?` <span style="color:var(--text3)">+${prods.length-1}</span>`:''):'–';
+  const prodTitle=esc(prods.map(p=>p.producto+' ('+(p.tarimas||0)+')').join(', '));
+  const ent=c.entregado
+    ?`<button class="btn-entregado done" onclick="toggleEntregado('${c.id}')" title="Marcado por ${esc(c.entregadoPor||'')}">✓ ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')}</button>`
+    :`<button class="btn-entregado" onclick="toggleEntregado('${c.id}')">Marcar entregado</button>`;
+  return `<tr id="desp-${c.id}">
+    <td class="mono" style="white-space:nowrap">${fmtD(c.despachadoFecha||c.fecha)} ${esc(c.horaDespacho||'')}</td>
+    <td class="desp-strong">${esc(o0.cliente||'–')}${masCli}</td>
+    <td class="mono">${esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–')}</td>
+    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${prodTitle}">${prodTxt}</td>
+    <td class="mono">${tar||'–'}</td>
+    <td>${esc(o0.destino||'–')}</td>
+    <td class="mono" style="white-space:nowrap">${fmtEntrega(o0.fechaEntrega)}</td>
+    <td>${esc(c.transportista||'–')}</td>
+    <td class="mono">${esc(c.ecoBox||'–')}</td>
+    <td class="mono">${esc(c.ecoTruck||'–')}</td>
+    <td><span class="status-pill ${c.cruceListo?'status-cruzado':'status-cruce-pendiente'}">${c.cruceListo?(c.horaCruce||'Cruzado'):'Pendiente'}</span></td>
+    <td>${ent}</td>
+  </tr>`;
 }
 
 function renderDespPage(){
-  const box=document.getElementById('desp-history');
+  const tb=document.getElementById('desp-tbody');
   const end=document.getElementById('desp-end');
   if(end) end.remove();
   const next=despAll.slice(despShown,despShown+DESP_PAGE);
-  box.insertAdjacentHTML('beforeend',next.map(despCard).join(''));
+  tb.insertAdjacentHTML('beforeend',next.map(despRow).join(''));
   despShown+=next.length;
   if(despShown>=despAll.length){
-    box.insertAdjacentHTML('beforeend','<div class="desp-end" id="desp-end">— fin del historial —</div>');
+    tb.insertAdjacentHTML('beforeend','<tr class="empty-row" id="desp-end"><td colspan="12">— fin del historial —</td></tr>');
   }
+}
+
+async function toggleEntregado(id){
+  const c=despAll.find(x=>x.id===id); if(!c) return;
+  let upd;
+  if(c.entregado){
+    if(!confirm('¿Quitar la marca de "Entregado" de este camión?')) return;
+    upd={entregado:false,entregadoFecha:'',entregadoHora:'',entregadoPor:''};
+  } else {
+    upd={entregado:true,entregadoFecha:today(),entregadoHora:nowTime(),entregadoPor:authUser?.email||''};
+  }
+  try{
+    if(db) await db.collection('programas').doc(id).update(upd);
+    Object.assign(c,upd);
+    const tr=document.getElementById('desp-'+id);
+    if(document.getElementById('desp-solo-pend')?.checked && c.entregado){ if(tr) tr.remove(); }
+    else if(tr) tr.outerHTML=despRow(c);
+    toast(c.entregado?'Marcado como entregado ✓':'Marca de entregado quitada',c.entregado?'success':undefined);
+    const k=document.getElementById('k-entregados'); if(k&&role==='gerente') loadDashboard();
+  }catch(e){ toast('No se pudo guardar: '+e.message,'error'); }
 }
 
 async function exportDespachadosHistorial(){
@@ -1454,12 +1526,12 @@ async function exportDespachadosHistorial(){
   try{
     const snap=await db.collection('programas').where('despachado','==',true).get();
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce'];
+    const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Tarimas','Destino','Fecha entrega (programada)','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce','Entregado','Fecha entregado','Hora entregado','Marcado por'];
     const rows=[header];
     all.sort((a,b)=>(a.despachadoFecha||a.fecha||'').localeCompare(b.despachadoFecha||b.fecha||'')).forEach(c=>{
       (c.ordenes||[{}]).forEach(o=>{
         (o.productos||[{}]).forEach(p=>{
-          rows.push([c.despachadoFecha||c.fecha||'',c.horaDespacho||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.cruceListo?'Sí':'No',c.horaCruce||'']);
+          rows.push([c.despachadoFecha||c.fecha||'',c.horaDespacho||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.cruceListo?'Sí':'No',c.horaCruce||'',c.entregado?'Sí':'No',c.entregadoFecha||'',c.entregadoHora||'',c.entregadoPor||'']);
         });
       });
     });
@@ -1473,7 +1545,7 @@ async function exportDespachadosHistorial(){
 }
 
 function exportCSV(){
-  const header=['Fecha','Cliente','SO','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
+  const header=['Fecha','Cliente','SO','Producto','Tarimas','Destino','Entrega','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Despacho','Cruce'];
   const rows=[header];
   ['tbody-ayer','tbody-hoy'].forEach(id=>{
     document.querySelectorAll('#'+id+' tr:not(.empty-row)').forEach(tr=>{
