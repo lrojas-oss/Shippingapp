@@ -194,6 +194,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .modal-field input:focus{outline:none;border-color:var(--accent);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;}
 .modal-note{font-size:12px;color:var(--text3);background:var(--bg);border-radius:var(--radius);padding:8px 10px;margin-bottom:1rem;line-height:1.6;}
+/* VENTAS */
+.ventas-banner{margin:.75rem 1.25rem 0;padding:8px 12px;border-radius:8px;background:var(--blue-bg);color:var(--blue);font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ventas-banner.hidden{display:none;}
+.ventas-box{border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:12px;line-height:1.5;}
+.ventas-box ul{margin:4px 0 6px 18px;}
+.ventas-box.aviso{background:var(--amber-bg);color:var(--amber);border:1px solid #fcd34d;}
+.ventas-box.ok{background:var(--green-bg);color:var(--green);border:1px solid #6ee7b7;}
+.ventas-info{font-size:11px;color:var(--text3);margin:-2px 0 8px;}
+.vm-item{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg);}
+.vm-item.importado{opacity:.6;}
+.vm-item input{margin-top:3px;width:16px;height:16px;}
+.vm-main{flex:1;min-width:0;}
+.vm-title{font-weight:600;font-size:13px;}
+.vm-meta{font-size:12px;color:var(--text2);}
+.vm-prods{font-size:12px;color:var(--text2);margin-top:2px;}
+.vm-tag{font-size:11px;padding:1px 7px;border-radius:10px;background:var(--bg3);color:var(--text2);white-space:nowrap;}
+.vm-tag.ok{background:var(--green-bg);color:var(--green);}
+.vm-empty{text-align:center;color:var(--text3);padding:1.5rem;font-style:italic;font-size:13px;}
+@media(max-width:500px){.ventas-banner{margin:.5rem .75rem 0;}}
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -225,9 +244,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <input id="cfg-project" placeholder="harvest-tek-shipping"/></div>
     <div class="modal-field"><label>Firebase Auth Domain (opcional)</label>
       <input id="cfg-auth" placeholder="harvest-tek-shipping.firebaseapp.com"/></div>
+    <div class="modal-field"><label>URL puente Ventas (Apps Script, opcional)</label>
+      <input id="cfg-ventas" placeholder="https://script.google.com/macros/s/.../exec"/></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeConfig()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveConfig()">Guardar y conectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORTAR DE VENTAS -->
+<div class="modal-overlay hidden" id="ventas-modal">
+  <div class="modal-box" style="max-width:760px">
+    <div class="modal-title">Importar del programa de ventas</div>
+    <div class="modal-sub" id="vm-sub">Shipping Orders 26-27</div>
+    <div id="vm-list"></div>
+    <div class="modal-actions" style="flex-wrap:wrap">
+      <span id="vm-count" style="font-size:12px;color:var(--text3);margin-right:auto;align-self:center"></span>
+      <button class="btn btn-outline" onclick="cerrarImportar()">Cerrar</button>
+      <button class="btn btn-outline" id="vm-juntar" onclick="importarSeleccion(true)" disabled title="Para 2 o 3 SO que van en el mismo camión">Juntar en 1 camión</button>
+      <button class="btn btn-primary" id="vm-importar" onclick="importarSeleccion(false)" disabled>Importar (1 camión por SO)</button>
     </div>
   </div>
 </div>
@@ -286,16 +322,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <span style="font-size:12px;color:var(--text3)">Programa:</span>
       <input type="date" id="sup-fecha" onchange="loadPrograma()"/>
     </div>
-    <button class="btn btn-primary" onclick="addCamion()">+ Agregar camión</button>
-    <button class="btn btn-outline btn-sm" onclick="loadPrograma()">↻</button>
+    <button class="btn btn-primary" onclick="abrirImportar()">📥 Importar de ventas</button>
+    <button class="btn btn-outline" onclick="addCamion()">+ Camión manual</button>
+    <button class="btn btn-outline btn-sm" onclick="loadPrograma();revisarVentas(true)" title="Recargar y revisar ventas">↻</button>
     <span id="sup-conn" style="font-size:11px;color:var(--text3)"></span>
+    <span id="ventas-status" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
   </div>
+  <div id="ventas-banner" class="ventas-banner hidden"></div>
   <div id="sup-table-section">
     <div class="sup-table-wrap">
       <table class="sup-table">
         <thead><tr>
           <th style="width:28px"></th>
-          <th>#</th><th>Cliente</th><th>QT</th><th>Producto</th>
+          <th>#</th><th>Cliente</th><th>SO</th><th>Producto</th>
           <th>Transportista</th><th>Eco Caja</th><th>Rampa</th>
           <th>Estatus Carga</th><th>Despacho</th><th>Cruce</th>
           <th></th>
@@ -337,7 +376,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div class="dash-section">
     <div class="dash-section-title">Carga de ayer / pendientes de días anteriores</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
     </tr></thead><tbody id="tbody-ayer"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
@@ -345,7 +384,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div class="dash-section">
     <div class="dash-section-title">Programa de hoy</div>
     <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>QT</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
+      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th>
       <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
       <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
     </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="13">Cargando...</td></tr></tbody></table></div>
@@ -404,6 +443,7 @@ function openConfig(){
   document.getElementById('cfg-apikey').value=CFG.apiKey||'';
   document.getElementById('cfg-project').value=CFG.project||'';
   document.getElementById('cfg-auth').value=CFG.auth||'';
+  document.getElementById('cfg-ventas').value=CFG.ventasUrl||'';
   document.getElementById('config-modal').classList.remove('hidden');
 }
 function closeConfig(){ document.getElementById('config-modal').classList.add('hidden'); }
@@ -411,7 +451,8 @@ function saveConfig(){
   CFG={sheets:document.getElementById('cfg-sheets').value.trim()||SHEETS_DEFAULT,
     apiKey:document.getElementById('cfg-apikey').value.trim(),
     project:document.getElementById('cfg-project').value.trim(),
-    auth:document.getElementById('cfg-auth').value.trim()};
+    auth:document.getElementById('cfg-auth').value.trim(),
+    ventasUrl:document.getElementById('cfg-ventas').value.trim()};
   localStorage.setItem('htm_cfg',JSON.stringify(CFG));
   closeConfig(); initFB(); toast('Configuración guardada','success');
 }
@@ -539,12 +580,14 @@ async function loadPrograma(){
   } else {
     renderCamiones(JSON.parse(localStorage.getItem('htm_'+fecha)||'[]'),fecha);
   }
+  VENTAS_NUEVAS=[]; renderVentasBanner();
+  revisarVentas(false);
 }
 
 function renderCamiones(list,fecha){
   const tbody=document.getElementById('camiones-tbody');
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "+ Agregar camión" para crear el programa.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Sin camiones para ${fmtD(fecha)}. Usa "📥 Importar de ventas" o "+ Camión manual".</td></tr>`;
     return;
   }
   tbody.innerHTML='';
@@ -558,9 +601,9 @@ function renderCamiones(list,fecha){
     tr.innerHTML=`
       <td><span class="expand-icon" id="ei-${c.id}">▶</span></td>
       <td><span style="font-family:var(--mono);font-size:12px;font-weight:500;background:var(--text);color:#fff;padding:1px 7px;border-radius:4px">${i+1}</span></td>
-      <td style="font-weight:500">${ords[0]?.cliente||'–'}</td>
-      <td class="mono">${ords[0]?.qt||'–'}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${(ords[0]?.productos||[{}])[0]?.producto||'–'}</td>
+      <td style="font-weight:500">${ventasBadge(c)}${esc(ords[0]?.cliente||'–')}${ords.length>1?` <span style="color:var(--text3);font-weight:400">+${ords.length-1}</span>`:''}</td>
+      <td class="mono">${esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–')}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${esc(ords.flatMap(o=>(o.productos||[]).map(p=>p.producto+' ('+(p.tarimas||0)+')')).join(', '))}">${esc((ords[0]?.productos||[{}])[0]?.producto||'–')}${prodExtra(ords)}</td>
       <td>${c.transportista||'–'}</td>
       <td class="mono">${c.ecoBox||'–'}</td>
       <td class="mono">${c.rampa||'–'}</td>
@@ -627,6 +670,7 @@ function mkCardBody(c){
   const o3=openSubs.has(c.id+'_3')?' open':'';
   return`<div style="max-width:800px">
     <div class="seccion-label">Sección 1 — Programación</div>
+    ${ventasNotice(c)}
     <div id="ords-${c.id}">${ords.map((o,i)=>mkOrden(c.id,i,o,ords.length)).join('')}</div>
     ${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${c.id}')">+ Agregar orden</button>`:''}
     <div class="field-grid field-grid-2" style="margin-top:10px">
@@ -725,6 +769,7 @@ function _unused_mkCard(c,num){
   </div>
   <div class="camion-body">
     <div class="seccion-label">Sección 1 — Programación</div>
+    ${ventasNotice(c)}
     <div id="ords-${c.id}">${ords.map((o,i)=>mkOrden(c.id,i,o,ords.length)).join('')}</div>
     ${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${c.id}')">+ Agregar orden</button>`:''}
     <div class="field-grid field-grid-2" style="margin-top:10px">
@@ -785,30 +830,33 @@ function mkOrden(cid,oi,o,total){
   const cli=o.cliente||'';
   const prods=o.productos||[{producto:'',tarimas:''}];
   const pOpts=CAT.productos[cli]||[];
-  const destOpts=(cli&&CAT.destinosPorCliente[cli]&&CAT.destinosPorCliente[cli].length)?CAT.destinosPorCliente[cli]:CAT.destinos;
+  const destOpts=withVal((cli&&CAT.destinosPorCliente[cli]&&CAT.destinosPorCliente[cli].length)?CAT.destinosPorCliente[cli]:CAT.destinos,o.destino);
+  const cliOpts=withVal(CAT.clientes,cli);
+  const vInfo=o.ventasKey?`<div class="ventas-info">📥 De ventas${o.po?` · PO ${esc(o.po)}`:''}${o.prioridad?` · Prioridad ${esc(o.prioridad)}`:''}${o.tipoTarima?` · Tarima ${esc(o.tipoTarima)}`:''}</div>`:'';
   return`<div class="orden-block" id="ob-${cid}-${oi}">
     <div class="orden-header">
-      <span class="orden-num">Orden ${oi+1}</span>
+      <span class="orden-num">Orden ${oi+1}${o.ventasKey?' · ventas':''}</span>
       ${total>1?`<button class="btn-remove-orden" onclick="remOrden('${cid}',${oi})">Quitar</button>`:''}
     </div>
+    ${vInfo}
     <div class="field-grid field-grid-2">
       <div class="field-group"><label>Cliente</label>
         <select id="sc-${cid}-${oi}" onchange="onCli('${cid}',${oi},this.value)">
           <option value="">Seleccionar...</option>
-          ${CAT.clientes.map(c=>`<option value="${c}"${c===cli?' selected':''}>${c}</option>`).join('')}
+          ${cliOpts.map(c=>`<option value="${esc(c)}"${c===cli?' selected':''}>${esc(c)}</option>`).join('')}
         </select></div>
-      <div class="field-group"><label>No. QT</label>
-        <input type="text" value="${o.qt||''}" placeholder="QT-0000" onchange="updOF('${cid}',${oi},'qt',this.value)"/></div>
+      <div class="field-group"><label>No. SO</label>
+        <input type="text" value="${esc(o.qt||'')}" placeholder="104500" onchange="updOF('${cid}',${oi},'qt',this.value)"/></div>
     </div>
     <div id="pp-${cid}-${oi}">
       ${prods.map((p,pi)=>mkProd(cid,oi,pi,p,cli,prods.length)).join('')}
     </div>
-    ${prods.length<3?`<button class="btn-add-orden" style="font-size:11px;padding:3px 8px" onclick="addProd('${cid}',${oi})">+ producto</button>`:''}
+    ${prods.length<MAX_PRODS?`<button class="btn-add-orden" style="font-size:11px;padding:3px 8px" onclick="addProd('${cid}',${oi})">+ producto</button>`:''}
     <div class="field-grid field-grid-2" style="margin-top:8px">
       <div class="field-group"><label>Destino</label>
         <select onchange="updOF('${cid}',${oi},'destino',this.value)">
           <option value="">Seleccionar...</option>
-          ${destOpts.map(d=>`<option value="${d}"${d===(o.destino||'')?' selected':''}>${d}</option>`).join('')}
+          ${destOpts.map(d=>`<option value="${esc(d)}"${d===(o.destino||'')?' selected':''}>${esc(d)}</option>`).join('')}
           ${!destOpts.length?`<option value="${o.destino||''}">${o.destino||'(agrega destinos en Sheets)'}</option>`:''}
         </select></div>
       <div class="field-group"><label>Fecha entrega</label>
@@ -818,12 +866,12 @@ function mkOrden(cid,oi,o,total){
 }
 
 function mkProd(cid,oi,pi,p,cli,total){
-  const opts=CAT.productos[cli]||[];
+  const opts=withVal(CAT.productos[cli]||[],p.producto);
   return`<div class="field-grid" style="grid-template-columns:2fr 1fr${total>1?' auto':''}; gap:6px;margin-bottom:6px" id="pp-${cid}-${oi}-${pi}">
     <div class="field-group"><label>Producto ${pi+1}</label>
       <select onchange="updPF('${cid}',${oi},${pi},'producto',this.value)">
         <option value="">Seleccionar...</option>
-        ${opts.map(op=>`<option value="${op}"${op===(p.producto||'')?' selected':''}>${op}</option>`).join('')}
+        ${opts.map(op=>`<option value="${esc(op)}"${op===(p.producto||'')?' selected':''}>${esc(op)}</option>`).join('')}
       </select></div>
     <div class="field-group"><label>Tarimas</label>
       <input type="number" min="0" value="${p.tarimas||''}" placeholder="0" onchange="updPF('${cid}',${oi},${pi},'tarimas',this.value)"/></div>
@@ -954,7 +1002,7 @@ async function remOrden(id,oi){
 }
 async function addProd(id,oi){
   const ords=await getOrdenes(id);
-  if((ords[oi]?.productos||[]).length>=3)return;
+  if((ords[oi]?.productos||[]).length>=MAX_PRODS)return;
   ords[oi].productos.push({producto:'',tarimas:''});
   await setOrdenes(id,ords);
 }
@@ -983,6 +1031,278 @@ async function guardarCamion(id){
   toast('Cambios guardados en tiempo real ✓','success');
   setSS(id,'saved');
 }
+
+// ── VENTAS (Shipping Orders 26-27 vía puente Apps Script) ──
+// Reglas acordadas:
+//  - Camión "En espera": los cambios de ventas se aplican solos (y se mueve de fecha si ventas cambió la Harvest Date).
+//  - Camión cargando o más avanzado: solo aviso; el supervisor decide Aplicar / Ignorar.
+//  - SO nuevos: aviso con botón Importar. SO que desaparece: aviso, nunca se borra el camión.
+//  - Nunca se toca transportista ni secciones 2 y 3.
+const VENTAS_URL_DEFAULT='';
+const VENTAS_POLL_MS=5*60*1000;
+const MAX_PRODS=8;
+let VENTAS={ordenes:[],byKey:{},hojas:[],at:null};
+let VENTAS_NUEVAS=[];      // SO del día seleccionado sin importar
+let ventasWin=[];          // camiones en la ventana de fechas revisada
+let ventasBusy=false;
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function withVal(list,val){ return (val&&!(list||[]).includes(val))?[...(list||[]),val]:(list||[]); }
+function prodExtra(ords){ const n=ords.reduce((s,o)=>s+(o.productos||[]).filter(p=>p.producto).length,0); return n>1?` <span style="color:var(--text3)">+${n-1}</span>`:''; }
+function addDays(ymd,n){ const d=new Date(ymd+'T12:00:00'); d.setDate(d.getDate()+n); return localYMD(d); }
+function fmtCorta(s){ if(!s)return'–'; const p=s.split('-'); return p[2]+'/'+p[1]; }
+function ventasUrl(){ return (CFG.ventasUrl||VENTAS_URL_DEFAULT||'').trim(); }
+// Llave de ventas de una orden: la vinculada, o la de su SO si se capturó a mano (evita duplicar)
+function llaveOrden(o){ if(o.ventasKey) return o.ventasKey; const q=String(o.qt||'').trim(); return /^\d+$/.test(q)?'SO:'+q:null; }
+function esEspera(c){ return !c.estatusCarga||c.estatusCarga==='En espera'; }
+
+function snapVentas(v){
+  return JSON.stringify({so:v.so,c:v.cliente,d:v.destino,e:v.entrega||'',f:v.cosecha,
+    p:v.productos.map(p=>[p.producto,Number(p.tarimas)||0])});
+}
+function ordenDesdeVentas(v){
+  return {qt:v.so,cliente:v.cliente,
+    productos:v.productos.map(p=>({producto:p.producto,tarimas:String(p.tarimas)})),
+    destino:v.destino,fechaEntrega:v.entrega||'',po:v.po||'',prioridad:v.prioridad||'',tipoTarima:v.tipoTarima||'',
+    ventasKey:v.key,ventasSnap:snapVentas(v)};
+}
+function diffVentas(oldSnap,v){
+  let o={}; try{o=JSON.parse(oldSnap||'{}');}catch(e){}
+  const n=JSON.parse(snapVentas(v)), out=[];
+  if(o.so!==n.so) out.push(`SO ${o.so||'–'} → ${n.so}`);
+  if(o.f!==n.f) out.push(`Fecha de carga ${fmtCorta(o.f)} → ${fmtCorta(n.f)}`);
+  if(o.c!==n.c) out.push(`Cliente ${o.c||'–'} → ${n.c}`);
+  if(o.d!==n.d) out.push(`Destino ${o.d||'–'} → ${n.d}`);
+  if(o.e!==n.e) out.push(`Entrega ${fmtCorta(o.e)} → ${fmtCorta(n.e)}`);
+  const sum=arr=>{const m=new Map();(arr||[]).forEach(([p,t])=>m.set(p,(m.get(p)||0)+t));return m;};
+  const om=sum(o.p), nm=sum(n.p);
+  nm.forEach((t,p)=>{ if(!om.has(p)) out.push(`+ ${p} (${t} tarimas)`); else if(om.get(p)!==t) out.push(`${p}: ${om.get(p)} → ${t} tarimas`); });
+  om.forEach((t,p)=>{ if(!nm.has(p)) out.push(`− ${p} (${t} tarimas)`); });
+  return out;
+}
+
+// Decide qué hacer con cada camión (función pura: no escribe en la base de datos).
+// opts: {hora, hoy, forzar:Set(ids) para aplicar aunque no esté en espera}
+function planSync(trucks,ventas,fecha,opts){
+  const acciones=[];
+  const importadas=new Set();
+  trucks.forEach(c=>(c.ordenes||[]).forEach(o=>{ const k=llaveOrden(o); if(k) importadas.add(k); }));
+  const reusadas=new Set();
+  trucks.forEach(c=>{
+    if(c.despachado) return;
+    const ords=c.ordenes||[];
+    if(!ords.some(o=>o.ventasKey)) return;
+    const aplicar=esEspera(c)||(opts.forzar&&opts.forzar.has(c.id));
+    const nuevas=ords.map(o=>({...o}));
+    const cambios=[], avisos=[], fechasNuevas=new Set();
+    let tocado=false;
+    nuevas.forEach((o,i)=>{
+      if(!o.ventasKey) return;
+      let v=ventas.byKey[o.ventasKey];
+      // SO "PENDIENTE" que ya recibió número: buscar la misma orden con SO real
+      if(!v&&o.ventasKey.startsWith('PEND:')){
+        let s={}; try{s=JSON.parse(o.ventasSnap||'{}');}catch(e){}
+        const prods=JSON.stringify((s.p||[]).map(x=>x[0]).sort());
+        const cands=ventas.ordenes.filter(x=>!importadas.has(x.key)&&!reusadas.has(x.key)&&
+          x.cliente===s.c&&x.destino===s.d&&x.cosecha===s.f&&JSON.stringify(x.productos.map(p=>p.producto).sort())===prods);
+        if(cands.length===1){ v=cands[0]; reusadas.add(v.key); }
+      }
+      if(!v){ avisos.push(`SO ${o.qt||'PENDIENTE'} ya no aparece en ventas`); return; }
+      const snap=snapVentas(v);
+      if(snap===o.ventasSnap&&v.key===o.ventasKey) return;
+      const d=diffVentas(o.ventasSnap,v);
+      let oldF=''; try{oldF=JSON.parse(o.ventasSnap||'{}').f||'';}catch(e){}
+      if(aplicar){
+        nuevas[i]={...o,...ordenDesdeVentas(v)};
+        cambios.push(...d.map(x=>ords.length>1?`SO ${v.so}: ${x}`:x));
+        if(v.cosecha!==oldF) fechasNuevas.add(v.cosecha);
+        tocado=true;
+      } else {
+        avisos.push(...d.map(x=>`SO ${v.so}: ${x}`));
+      }
+    });
+    const update={};
+    if(tocado){
+      update.ordenes=nuevas;
+      update.ventasKeys=nuevas.map(o=>o.ventasKey).filter(Boolean);
+      if(fechasNuevas.size===1){
+        const nf=[...fechasNuevas][0];
+        if(nf!==c.fecha){ update.fecha=nf; cambios.push(`Camión movido del ${fmtCorta(c.fecha)} al ${fmtCorta(nf)}`); }
+      } else if(fechasNuevas.size>1){
+        avisos.push('Las órdenes de este camión tienen fechas de carga distintas en ventas');
+      }
+      update.ventasActualizado={hora:opts.hora,fecha:opts.hoy,texto:cambios};
+    }
+    const firma=avisos.join('|');
+    const firmaActual=c.ventasAviso?.texto?.join('|')||'';
+    if(firma!==firmaActual) update.ventasAviso=avisos.length?{texto:avisos,hora:opts.hora}:null;
+    if(Object.keys(update).length) acciones.push({id:c.id,update,auto:tocado,movido:!!update.fecha});
+  });
+  const nuevasSO=ventas.ordenes.filter(v=>v.cosecha===fecha&&!importadas.has(v.key)&&!reusadas.has(v.key));
+  return {acciones,nuevasSO};
+}
+
+async function fetchVentas(fecha){
+  const url=ventasUrl(); if(!url) throw new Error('falta configurar el puente');
+  const user=firebase.auth().currentUser; if(!user) throw new Error('sin sesión');
+  const idToken=await user.getIdToken();
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({idToken,desde:addDays(fecha,-14),hasta:addDays(fecha,35)})});
+  const j=await r.json();
+  if(!j.ok) throw new Error(j.error||'error del puente');
+  VENTAS={ordenes:j.ordenes||[],byKey:Object.fromEntries((j.ordenes||[]).map(o=>[o.key,o])),hojas:j.hojas||[],at:new Date()};
+}
+async function fetchVentanaCamiones(fecha){
+  const snap=await db.collection('programas').where('fecha','>=',addDays(fecha,-7)).where('fecha','<=',addDays(fecha,21)).get();
+  return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+function setVentasStatus(t){ const e=document.getElementById('ventas-status'); if(e) e.textContent=t; }
+
+async function revisarVentas(manual,forzar){
+  if(role!=='supervisor') return;
+  if(!ventasUrl()){ setVentasStatus(''); if(manual) toast('Falta configurar el puente de ventas (⚙ Configurar)','error'); return; }
+  if(!db||!authUser){ if(manual) toast('Requiere conexión e inicio de sesión','error'); return; }
+  if(ventasBusy){
+    if(!manual&&!forzar) return;
+    while(ventasBusy) await new Promise(r=>setTimeout(r,300));
+  }
+  ventasBusy=true; setVentasStatus('Revisando ventas...');
+  const fecha=document.getElementById('sup-fecha').value||today();
+  try{
+    await fetchVentas(fecha);
+    ventasWin=await fetchVentanaCamiones(fecha);
+    const {acciones,nuevasSO}=planSync(ventasWin,VENTAS,fecha,{hora:nowTime(),hoy:today(),forzar});
+    for(const a of acciones){
+      await db.collection('programas').doc(a.id).update(a.update);
+      const c=ventasWin.find(x=>x.id===a.id); if(c) Object.assign(c,a.update);
+    }
+    VENTAS_NUEVAS=nuevasSO;
+    renderVentasBanner();
+    const auto=acciones.filter(a=>a.auto).length, mov=acciones.filter(a=>a.movido).length;
+    if(auto) toast(`Ventas: ${auto>1?auto+' camiones actualizados':'1 camión actualizado'}${mov?` (${mov} movido${mov>1?'s':''} de fecha)`:''}`,'success');
+    setVentasStatus(`Ventas revisado ${nowTime()}`);
+  }catch(e){
+    console.warn(e); setVentasStatus('Ventas: '+e.message);
+    if(manual) toast('No se pudo leer ventas: '+e.message,'error');
+  }
+  ventasBusy=false;
+}
+
+function renderVentasBanner(){
+  const b=document.getElementById('ventas-banner'); if(!b) return;
+  const n=VENTAS_NUEVAS.length;
+  if(!n){ b.classList.add('hidden'); b.innerHTML=''; return; }
+  b.classList.remove('hidden');
+  b.innerHTML=`<span>📥 <b>${n}</b> SO en ventas sin importar para este día</span>
+    <button class="btn btn-primary btn-sm" onclick="abrirImportar()">Ver e importar</button>`;
+}
+
+function ventasBadge(c){
+  if(c.ventasAviso?.texto?.length) return '<span title="Ventas cambió este camión">⚠️ </span>';
+  if(c.ventasActualizado&&c.ventasActualizado.fecha===today()) return '<span title="Actualizado por ventas">🔄 </span>';
+  return '';
+}
+function ventasNotice(c){
+  let h='';
+  if(c.ventasAviso?.texto?.length){
+    h+=`<div class="ventas-box aviso"><b>⚠️ Ventas cambió este camión</b> (${esc(c.ventasAviso.hora||'')})
+      <ul>${c.ventasAviso.texto.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+      <button class="btn btn-sm btn-primary" onclick="aplicarAvisoVentas('${c.id}')">Aplicar cambios</button>
+      <button class="btn btn-sm btn-outline" onclick="ignorarAvisoVentas('${c.id}')">Ignorar</button></div>`;
+  }
+  if(c.ventasActualizado&&c.ventasActualizado.fecha===today()&&c.ventasActualizado.texto?.length){
+    h+=`<div class="ventas-box ok"><b>🔄 Actualizado por ventas a las ${esc(c.ventasActualizado.hora||'')}</b>
+      <ul>${c.ventasActualizado.texto.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+      <button class="btn btn-sm btn-outline" onclick="updF('${c.id}','ventasActualizado',null)">Entendido</button></div>`;
+  }
+  return h;
+}
+
+async function aplicarAvisoVentas(id){
+  await revisarVentas(true,new Set([id]));
+}
+async function ignorarAvisoVentas(id){
+  if(!db) return;
+  const d=await db.collection('programas').doc(id).get(); const c=d.data(); if(!c) return;
+  // Acepta lo que hoy dice ventas como referencia, sin cambiar lo capturado.
+  // Si el SO ya no existe en ventas, el camión se desvincula (queda como manual).
+  const ords=(c.ordenes||[]).map(o=>{
+    if(!o.ventasKey) return o;
+    const v=VENTAS.byKey[o.ventasKey];
+    if(v) return {...o,ventasSnap:snapVentas(v)};
+    const {ventasKey,ventasSnap,...rest}=o; return rest;
+  });
+  await db.collection('programas').doc(id).update({ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey).filter(Boolean),ventasAviso:null});
+  toast('Aviso descartado');
+}
+
+// ── Ventana de importar ──
+async function abrirImportar(){
+  if(!ventasUrl()){ toast('Falta configurar el puente de ventas (⚙ Configurar)','error'); return; }
+  showLoad('Leyendo programa de ventas...');
+  await revisarVentas(true);
+  hideLoad();
+  if(!VENTAS.at) return;
+  renderImportar();
+  document.getElementById('ventas-modal').classList.remove('hidden');
+}
+function cerrarImportar(){ document.getElementById('ventas-modal').classList.add('hidden'); }
+
+function renderImportar(){
+  const fecha=document.getElementById('sup-fecha').value;
+  const delDia=VENTAS.ordenes.filter(v=>v.cosecha===fecha)
+    .sort((a,b)=>(a.prioridad||'zz').localeCompare(b.prioridad||'zz')||a.cliente.localeCompare(b.cliente));
+  const enApp={};
+  ventasWin.forEach(c=>(c.ordenes||[]).forEach(o=>{ const k=llaveOrden(o); if(k) enApp[k]=c; }));
+  document.getElementById('vm-sub').textContent=
+    `Harvest Date ${fmtD(fecha)} · ${delDia.length} SO · leído ${VENTAS.at.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})} de ${VENTAS.hojas.length} pestañas`;
+  const list=document.getElementById('vm-list');
+  if(!delDia.length){ list.innerHTML=`<div class="vm-empty">Ventas no tiene órdenes con Harvest Date ${fmtD(fecha)}.</div>`; actualizarSeleccion(); return; }
+  list.innerHTML=delDia.map(v=>{
+    const ya=enApp[v.key];
+    return `<label class="vm-item${ya?' importado':''}">
+      <input type="checkbox" class="vm-chk" value="${esc(v.key)}" ${ya?'disabled':''} onchange="actualizarSeleccion()"/>
+      <div class="vm-main">
+        <div class="vm-title">${esc(v.cliente)} · SO ${esc(v.so)} <span class="vm-tag">${v.totalTarimas} tarimas</span>
+          ${v.prioridad?`<span class="vm-tag">${esc(v.prioridad)}</span>`:''}
+          ${ya?`<span class="vm-tag ok">✓ Ya en la app${ya.fecha!==fecha?' ('+fmtCorta(ya.fecha)+')':''}${ya.origen!=='ventas'?' · manual':''}</span>`:''}</div>
+        <div class="vm-meta">→ ${esc(v.destino||'–')} · entrega ${fmtCorta(v.entrega)}${v.po&&v.po!=='N/A'?' · PO '+esc(v.po):''}${v.tipoTarima?' · '+esc(v.tipoTarima):''}</div>
+        <div class="vm-prods">${v.productos.map(p=>`${esc(p.producto)} <b>(${p.tarimas})</b>`).join(' · ')}</div>
+      </div></label>`;
+  }).join('');
+  actualizarSeleccion();
+}
+function actualizarSeleccion(){
+  const n=document.querySelectorAll('.vm-chk:checked').length;
+  document.getElementById('vm-count').textContent=n?`${n} seleccionado${n>1?'s':''}`:'';
+  document.getElementById('vm-importar').disabled=!n;
+  document.getElementById('vm-juntar').disabled=!(n>=2&&n<=3);
+}
+async function importarSeleccion(juntar){
+  if(!db){ toast('Requiere conexión a Firebase','error'); return; }
+  const fecha=document.getElementById('sup-fecha').value;
+  const keys=[...document.querySelectorAll('.vm-chk:checked')].map(i=>i.value);
+  const vs=keys.map(k=>VENTAS.byKey[k]).filter(Boolean);
+  if(!vs.length) return;
+  const grupos=juntar?[vs]:vs.map(v=>[v]);
+  const base=Date.now();
+  showLoad('Creando camiones...');
+  try{
+    for(let i=0;i<grupos.length;i++){
+      const ords=grupos[i].map(ordenDesdeVentas);
+      await db.collection('programas').add({
+        fecha,ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey),origen:'ventas',
+        transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
+        ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
+        cruceListo:false,horaCruce:'',createdAt:new Date(base+i).toISOString()});
+    }
+    toast(grupos.length>1?`${grupos.length} camiones importados de ventas`:'1 camión importado de ventas','success');
+  }catch(e){ toast('Error al importar: '+e.message,'error'); }
+  hideLoad();
+  cerrarImportar();
+  revisarVentas(false);
+}
+// ── FIN VENTAS ──
 
 // ── DASHBOARD ──
 async function loadDashboard(){
@@ -1105,7 +1425,7 @@ function despCard(c){
   const resumen=ords.map(o=>{
     const prods=o.productos||[{}];
     const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
-    return `${o.cliente||'–'} · QT ${o.qt||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
+    return `${o.cliente||'–'} · SO ${o.qt||'–'} (${tar||'–'} tarimas, ${o.destino||'–'})`;
   }).join(' · ');
   return `<div class="desp-card">
     <span class="desp-when">${fmtD(c.despachadoFecha||c.fecha)} ${c.horaDespacho||''}</span>
@@ -1134,7 +1454,7 @@ async function exportDespachadosHistorial(){
   try{
     const snap=await db.collection('programas').where('despachado','==',true).get();
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const header=['Fecha despacho','Hora despacho','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce'];
+    const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce'];
     const rows=[header];
     all.sort((a,b)=>(a.despachadoFecha||a.fecha||'').localeCompare(b.despachadoFecha||b.fecha||'')).forEach(c=>{
       (c.ordenes||[{}]).forEach(o=>{
@@ -1153,7 +1473,7 @@ async function exportDespachadosHistorial(){
 }
 
 function exportCSV(){
-  const header=['Fecha','Cliente','QT','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
+  const header=['Fecha','Cliente','SO','Producto','Tarimas','Destino','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce'];
   const rows=[header];
   ['tbody-ayer','tbody-hoy'].forEach(id=>{
     document.querySelectorAll('#'+id+' tr:not(.empty-row)').forEach(tr=>{
@@ -1181,6 +1501,10 @@ function toast(msg,type){
 document.addEventListener('DOMContentLoaded',()=>{
   initFB(); hideLoad(); setDateLabels();
   setInterval(()=>{ if(role==='gerente'){loadDashboard();loadDespachados();} },30000);
+  setInterval(()=>{ if(role==='supervisor') revisarVentas(false); },VENTAS_POLL_MS);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'&&role==='supervisor'&&(!VENTAS.at||Date.now()-VENTAS.at>2*60*1000)) revisarVentas(false);
+  });
 });
 
 if ('serviceWorker' in navigator) {
