@@ -995,20 +995,39 @@ function cambiarRol(){
   showScr('login-screen');
 }
 
+// Los 3 botones de la Sección 3 son interruptores: 1er clic marca, 2º clic (con confirmación) desmarca y limpia hora/fecha.
+function setTimeVal(elId,v){ const e=document.getElementById(elId); if(e) e.value=v; }
+
 async function toggleFac(id,btn){
-  if(btn.classList.contains('done'))return;
+  if(btn.classList.contains('done')){
+    if(!confirm('¿Quitar la marca de "Facturado y reportado"?'))return;
+    btn.classList.remove('done'); btn.textContent='Pendiente'; setTimeVal('fac-t-'+id,'');
+    await updF(id,'facturado',false); await updF(id,'facturadoAt','');
+    return;
+  }
   const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Sí';
   await updF(id,'facturado',true); await updF(id,'facturadoAt',t);
 }
 
 async function toggleDes(id,btn){
-  if(btn.classList.contains('done'))return;
+  if(btn.classList.contains('done')){
+    if(!confirm('¿Quitar la marca de "Despachado"? El camión saldrá del historial de despachados.'))return;
+    btn.classList.remove('done'); btn.textContent='Pendiente'; setTimeVal('des-t-'+id,'');
+    await updF(id,'despachado',false); await updF(id,'despachadoFecha',''); await updF(id,'horaDespacho','');
+    return;
+  }
   const t=nowTime(); btn.classList.add('done'); btn.textContent='✓ Despachado';
   await updF(id,'despachado',true); await updF(id,'despachadoFecha',today()); await updF(id,'horaDespacho',t);
 }
 
 async function toggleCruce(id,btn){
-  if(btn.classList.contains('done'))return;
+  if(btn.classList.contains('done')){
+    if(!confirm('¿Quitar la marca de "Cruce listo"?'))return;
+    btn.classList.remove('done'); btn.textContent='Marcar cruce listo'; setTimeVal('cru-t-'+id,'');
+    btn.parentElement?.querySelector('.status-pill')?.remove();
+    await updF(id,'cruceListo',false); await updF(id,'horaCruce','');
+    return;
+  }
   const ti=document.getElementById('cru-t-'+id);
   const t=ti?.value||nowTime();
   btn.classList.add('done'); btn.textContent='✓ Cruce listo';
