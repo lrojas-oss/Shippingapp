@@ -248,15 +248,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .tgc{height:28px;padding:2px 9px;font-size:11px;font-family:var(--mono);}
 .tgc:not(.on){font-family:var(--font);}
 .grid>tbody>tr>td.tgc-cell{padding:5px 4px;}
-.grid.desp-table>tbody>tr>td{padding-left:5px;padding-right:5px;}
-.grid.desp-table>thead>tr>th{padding-left:5px;padding-right:5px;letter-spacing:.03em;}
-.grid.desp-table>thead>tr>th.lock::after{content:none;}
-.grid.desp-table .st1{width:104px;min-width:104px;max-width:104px;}
-.grid.desp-table .st2{left:104px;min-width:60px;}
-.grid.desp-table .prod-btn{max-width:140px;}
-.grid.desp-table .tgc{padding:2px 7px;}
-.desp-table>tbody>tr>td{font-size:12px;}
+.grid.dash-table>tbody>tr>td{padding-left:5px;padding-right:5px;}
+.grid.dash-table>thead>tr>th{padding-left:5px;padding-right:5px;letter-spacing:.03em;}
+.grid.dash-table>thead>tr>th.lock::after{content:none;}
+.grid.dash-table .st1{width:104px;min-width:104px;max-width:104px;}
+.grid.dash-table .st2{left:104px;min-width:60px;}
+.grid.dash-table .prod-btn{max-width:112px;}
+.grid.dash-table .tgc{padding:2px 6px;}
+.grid.dash-table .cell-in{width:58px;}
+.grid.dash-table .cell-in.corto{width:40px;}
+.grid.dash-table .cell-sel{min-width:84px;max-width:110px;}
+.grid.dash-table>tbody>tr>td{font-size:12px;}
 .g-pop{position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:10px 12px;font-size:12px;color:var(--text2);min-width:200px;}
+.g-pop-s{margin-top:10px;font-size:11px;color:var(--text3);}
+.pill-sel.tgc-sel{height:28px;font-size:11px;padding:2px 6px;}
 .g-pop-t{font-weight:600;color:var(--text);font-size:13px;margin-bottom:8px;}
 .g-pop label{display:flex;align-items:center;gap:8px;}
 .g-pop input[type="time"]{height:34px;border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-family:var(--mono);font-size:13px;}
@@ -1540,9 +1545,9 @@ const GLOCK=new Set(['cliente','so','fecha','despf','producto','tarimas','destin
 // En Despachados el camión ya salió: transportista y cajas quedan bloqueados; solo se marcan facturado, despacho, cruce y entrega.
 const GLOCK_DESP=new Set(['transp','caja','truck']);
 function gLock(k,sec){ return GLOCK.has(k)||(sec==='desp'&&GLOCK_DESP.has(k)); }
-function gCls(k,sec){ return (k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(sec==='desp'&&['fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
-const GLBL_DESP={despf:'Fecha',tarimas:'Tar.',transp:'Transp.',caja:'Caja',truck:'Truck',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
-function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}">${sec==='desp'?(GLBL_DESP[k]||GLBL[k]):GLBL[k]}</th>`).join('')+'</tr>'; }
+function gCls(k,sec){ return (k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
+const GLBL_CORTO={despf:'Fecha',tarimas:'Tar.',transp:'Transp.',caja:'Caja',truck:'Truck',estatus:'Estatus',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
+function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}" title="${GLBL[k]}">${GLBL_CORTO[k]||GLBL[k]}</th>`).join('')+'</tr>'; }
 
 const TOGS={
   fac:{flag:'facturado',hora:'facturadoAt',txt:'Facturado',on:'status-si',off:'status-pendiente',q:'¿Quitar la marca de "Facturado y reportado"?'},
@@ -1586,11 +1591,12 @@ function gCell(c,k,sec,ed){
     case 'estatus': {
       const sc=ESTATUS.includes(c.estatusCarga)?c.estatusCarga:'En espera', key=estKey(sc);
       if(!ed) return `<span class="status-pill status-${key}">${sc==='Cargado'&&c.horaCargado?'Cargado '+esc(c.horaCargado):sc}</span>`;
-      return `<select class="pill-sel status-${key}" onchange="gEstatus('${id}',this)">${ESTATUS.map(s=>`<option${s===sc?' selected':''}>${s}</option>`).join('')}</select>`+(sc==='Cargado'?gTime(id,'horaCargado',c.horaCargado):'');
+      if(sc==='Cargado') return `<button class="tg tgc on status-cargado" onclick="gPopEst(event,'${id}')" title="Cargado: tocar para corregir la hora o cambiar el estatus">Cargado ${esc(to24(c.horaCargado)||c.horaCargado||'')}</button>`;
+      return `<select class="pill-sel tgc-sel status-${key}" onchange="gEstatus('${id}',this)">${ESTATUS.map(s=>`<option${s===sc?' selected':''}>${s}</option>`).join('')}</select>`;
     }
-    case 'fac': return gTog(c,'fac',ed,sec==='desp');
-    case 'desp': return gTog(c,'desp',ed,sec==='desp');
-    case 'cruce': return gTog(c,'cruce',ed,sec==='desp');
+    case 'fac': return gTog(c,'fac',ed,true);
+    case 'desp': return gTog(c,'desp',ed,true);
+    case 'cruce': return gTog(c,'cruce',ed,true);
     case 'entregado':
       if(!ed) return `<span class="status-pill ${c.entregado?'status-si':'status-pendiente'}">${c.entregado?'✓ Entregado':'Pendiente'}</span>`;
       if(sec==='desp') return c.entregado
@@ -1802,6 +1808,26 @@ function gPop(ev,id,kind){
   d.style.left=Math.max(8,x)+'px'; d.style.top=Math.max(8,y)+'px';
   POP=d;
 }
+function gPopEst(ev,id){
+  ev.stopPropagation();
+  const c=TRK[id]; if(!c) return;
+  gPopClose();
+  const b=ev.currentTarget.getBoundingClientRect();
+  const d=document.createElement('div'); d.className='g-pop';
+  d.innerHTML=`<div class="g-pop-t">Cargado</div>
+    <label>Hora <input type="time" value="${to24(c.horaCargado)}" onchange="gSetHora('${id}','horaCargado',this)"/></label>
+    <div class="g-pop-s">Cambiar estatus a:</div>
+    <div class="g-pop-b" style="justify-content:flex-start;flex-wrap:wrap;margin-top:4px">${ESTATUS.filter(x=>x!=='Cargado').map(x=>`<button class="tg status-${estKey(x)}" onclick="gPopEstSet('${id}','${x}')">${x}</button>`).join('')}</div>
+    <div class="g-pop-b"><button class="btn btn-primary btn-sm" onclick="gPopClose()">Listo</button></div>`;
+  d.onclick=e=>e.stopPropagation();
+  document.body.appendChild(d);
+  const w=d.offsetWidth, h=d.offsetHeight;
+  let x=Math.min(b.left,window.innerWidth-w-8), y=b.bottom+6;
+  if(y+h>window.innerHeight-8) y=b.top-h-6;
+  d.style.left=Math.max(8,x)+'px'; d.style.top=Math.max(8,y)+'px';
+  POP=d;
+}
+function gPopEstSet(id,v){ gPopClose(); gUpd(id,{estatusCarga:v,horaCargado:''}); }
 function gPopClose(){ if(POP){ POP.remove(); POP=null; } }
 function gPopQuitar(id,kind){ gPopClose(); if(kind==='ent') gEntregado(id); else gToggleFlag(id,kind); }
 document.addEventListener('click',gPopClose);
