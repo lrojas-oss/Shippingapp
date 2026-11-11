@@ -244,6 +244,51 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .vm-tag.ok{background:var(--green-bg);color:var(--green);}
 .vm-empty{text-align:center;color:var(--text3);padding:1.5rem;font-style:italic;font-size:13px;}
 @media(max-width:500px){.ventas-banner{margin:.5rem .75rem 0;}}
+/* PANEL ÚNICO — tabla editable tipo hoja de cálculo */
+.prueba-bar{display:none;background:#fde68a;color:#78350f;text-align:center;font-size:12px;font-weight:600;padding:4px 8px;letter-spacing:.03em;}
+.modo-prueba .prueba-bar{display:block;}
+.grid{border-collapse:separate;border-spacing:0;}
+.grid>tbody>tr>td{padding:5px 8px;height:44px;}
+.grid>tbody>tr:last-child>td{border-bottom:1px solid var(--border);}
+.grid>tbody>tr>td.lock{background:#faf9f6;color:var(--text2);}
+.grid>thead>tr>th.lock::after{content:' 🔒';font-size:9px;opacity:.55;}
+.grid .st1{position:sticky;left:0;z-index:2;width:128px;min-width:128px;max-width:128px;overflow:hidden;text-overflow:ellipsis;}
+.grid .st2{position:sticky;left:128px;z-index:2;min-width:70px;box-shadow:1px 0 0 var(--border2);}
+.grid>tbody>tr>td.st1{font-weight:600;color:var(--text);}
+.grid>thead .st1,.grid>thead .st2,.desp-history .grid>thead th.st1,.desp-history .grid>thead th.st2{z-index:4;}
+.grid>tbody>tr.g-row:hover>td{background:var(--green-bg);}
+.grid>tbody>tr.g-row.g-open>td{background:var(--green-bg);border-bottom-color:transparent;}
+.grid>tbody>tr.g-detail>td,.grid>tbody>tr.g-detail:hover>td{padding:0;height:auto;background:var(--bg);white-space:normal;border-bottom:2px solid var(--border2);}
+.g-box{position:sticky;left:0;width:min(880px,calc(100vw - 2.6rem - 2px));padding:12px 14px;box-sizing:border-box;}
+.cell-in{width:80px;height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 7px;font-family:var(--mono);font-size:12px;color:var(--text);}
+.cell-in.corto{width:52px;}
+.cell-sel{height:34px;min-width:112px;max-width:150px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 6px;font-family:var(--font);font-size:12px;color:var(--text);}
+.cell-sel.vacio{color:var(--text3);border-style:dashed;border-color:var(--border2);}
+.cell-time{height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:3px 4px;font-family:var(--mono);font-size:12px;margin-left:5px;color:var(--text);}
+.cell-in:focus,.cell-sel:focus,.cell-time:focus,.pill-sel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--green-light);}
+.pill-sel{height:32px;border-radius:20px;padding:3px 8px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;}
+.tg{height:32px;border-radius:20px;padding:3px 12px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.tg:not(.on){border:1px dashed var(--border2);background:#fff;color:var(--text3);}
+.tg:not(.on):hover{border-color:var(--accent);color:var(--accent);}
+.prod-btn{display:block;background:none;border:none;font:inherit;color:var(--text);cursor:pointer;padding:7px 2px;text-align:left;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prod-btn .chev{display:inline-block;color:var(--accent);transition:transform .15s;font-size:12px;margin-right:2px;}
+.prod-btn .chev.open{transform:rotate(90deg);}
+.mas{color:var(--green);font-weight:600;font-size:11px;background:var(--green-light);border-radius:10px;padding:0 6px;margin-left:2px;}
+.tag-fuera{font-size:10px;font-weight:600;color:var(--red);background:var(--red-bg);border-radius:10px;padding:1px 6px;margin-left:4px;}
+.grid .g-lines{border-collapse:collapse;font-size:12px;margin-bottom:8px;background:var(--bg2);border:1px solid var(--border);}
+.grid .g-lines th{background:var(--bg3);padding:5px 10px;font-size:10px;border-bottom:1px solid var(--border);}
+.grid .g-lines td{padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg2);}
+.g-acc{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--text2);}
+.g-acc select,.g-acc input[type="date"],.sec-date{height:32px;border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-family:var(--font);font-size:12px;background:#fff;color:var(--text);}
+.sec-date{text-transform:none;letter-spacing:0;font-weight:400;}
+.sec-n{font-family:var(--mono);font-weight:500;color:var(--text2);background:var(--bg3);border-radius:10px;padding:0 7px;letter-spacing:0;}
+.fecha-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fecha-btns button{padding:16px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;color:var(--text);}
+.fecha-btns button:hover{border-color:var(--accent);background:var(--green-bg);}
+.fecha-btns button span{display:block;font-size:12px;font-weight:400;color:var(--text3);margin-top:2px;}
+#usr-lista{width:100%;min-height:150px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--text);}
+@media(max-width:600px){.grid .st1{width:104px;min-width:104px;max-width:104px;}.grid .st2{position:static;box-shadow:none;}.grid .st1{box-shadow:1px 0 0 var(--border2);}}
+@media(min-width:1024px){.cell-in,.cell-sel,.cell-time,.pill-sel,.tg{font-size:13px;}}
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -256,6 +301,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div class="loading-spinner"></div>
   <div class="loading-text" id="loading-text">Cargando...</div>
 </div>
+<div class="prueba-bar">MODO PRUEBA · datos aparte, no afecta la operación real</div>
 <div class="toast" id="toast"></div>
 
 <!-- CONFIG MODAL -->
@@ -310,21 +356,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <button class="btn btn-primary" onclick="signInGoogle()" style="margin:.5rem 0 .25rem">Iniciar sesión con Google</button>
         <div style="font-size:12px;color:var(--text3)">Solo cuentas @harvesttekmex.com y @sfcos.com</div>
       </div>
-      <div id="role-cards-box" class="hidden">
-        <div class="login-sub">Selecciona tu perfil para continuar</div>
-        <div class="role-cards">
-          <div class="role-card" onclick="enterAs('supervisor')">
-            <div class="role-icon supervisor">🚛</div>
-            <div class="role-name">Supervisor</div>
-            <div class="role-desc">Captura y seguimiento en piso</div>
-          </div>
-          <div class="role-card" onclick="enterAs('gerente')">
-            <div class="role-icon gerente">📊</div>
-            <div class="role-name">Gerente</div>
-            <div class="role-desc">Dashboard y visualización</div>
-          </div>
-        </div>
-        <div style="margin-top:.5rem;text-align:center;font-size:12px;color:var(--text3)">
+      <div id="role-cards-box" class="hidden" style="text-align:center">
+        <button class="btn btn-primary" onclick="enterAs('gerente')" style="width:100%;justify-content:center;padding:12px;font-size:15px">Abrir panel de embarques</button>
+        <div id="login-rol" style="margin-top:.6rem;font-size:12px;color:var(--text2)"></div>
+        <div id="link-sup" class="hidden" style="margin-top:.6rem;font-size:12px"><a href="#" style="color:var(--text3)" onclick="enterAs('supervisor');return false">Abrir la vista de supervisor (anterior)</a></div>
+        <div style="margin-top:.75rem;font-size:12px;color:var(--text3)">
           <span id="login-who"></span> · <a href="#" onclick="signOutGoogle();return false">Cerrar sesión</a>
         </div>
       </div>
@@ -377,26 +413,50 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div id="camiones-list" style="display:none"></div>
 </div>
 
-<!-- GERENTE -->
+<!-- CAMIÓN MANUAL -->
+<div class="modal-overlay hidden" id="manual-modal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title">Nuevo camión manual</div>
+    <div class="modal-sub">¿Para qué fecha de carga?</div>
+    <div class="fecha-btns" id="manual-fechas"></div>
+    <div class="modal-actions"><button class="btn btn-outline" onclick="cerrarManual()">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- USUARIOS -->
+<div class="modal-overlay hidden" id="usr-modal">
+  <div class="modal-box">
+    <div class="modal-title">Usuarios que pueden editar</div>
+    <div class="modal-sub">Un correo por renglón. Cualquier otra cuenta de la empresa entra en modo solo lectura.</div>
+    <textarea id="usr-lista" spellcheck="false" placeholder="nombre@harvesttekmex.com"></textarea>
+    <div class="modal-note" style="margin-top:.75rem;margin-bottom:0" id="usr-nota"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarUsuarios()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarUsuarios()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL (antes vista de gerente) -->
 <div class="screen" id="gerente-screen">
   <div class="app-header">
     <div class="header-left">
       <div class="header-logo">HTM <span>SHIPPING</span></div>
-      <div class="header-badge badge-gerente">GERENTE</div>
+      <div class="header-badge badge-gerente" id="pan-badge">PANEL</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div class="header-date" id="ger-date"></div>
-      <button class="btn-logout" onclick="cambiarRol()" title="Cambiar perfil">⇄ Cambiar rol</button>
+      <button class="btn-logout" onclick="cambiarRol()" title="Salir del panel">Salir</button>
     </div>
   </div>
   <div class="dashboard-toolbar">
-    <span style="font-size:12px;color:var(--text3)">Del</span>
-    <input type="date" id="ger-desde" onchange="loadDashboard()"/>
-    <span style="font-size:12px;color:var(--text3)">al</span>
-    <input type="date" id="ger-hasta" onchange="loadDashboard()"/>
-    <button class="btn btn-outline btn-sm" onclick="loadDashboard()">↻ Actualizar</button>
+    <button class="btn btn-primary btn-sm" onclick="panelActualizar()" title="Lee la hoja de ventas (ayer, hoy y mañana)">↻ Actualizar</button>
     <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Excel / CSV</button>
+    <button class="btn btn-outline btn-sm solo-ed hidden" onclick="abrirManual()">+ Camión manual</button>
+    <button class="btn btn-outline btn-sm solo-admin hidden" onclick="abrirUsuarios()">👥 Usuarios</button>
+    <span id="pan-status" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
   </div>
+  <div id="pan-banner" class="ventas-banner hidden"></div>
   <div class="kpi-grid">
     <div class="kpi-card"><div class="kpi-label">Camiones hoy</div><div class="kpi-value" id="k-hoy">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Cargados</div><div class="kpi-value" id="k-cargados">–</div></div>
@@ -406,36 +466,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="kpi-card"><div class="kpi-label">Entregados</div><div class="kpi-value" id="k-entregados">–</div></div>
   </div>
   <div class="dash-section">
-    <div class="dash-section-title">Carga de ayer / pendientes de días anteriores</div>
-    <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
-      <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
-      <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-ayer"><tr class="empty-row"><td colspan="14">Cargando...</td></tr></tbody></table></div>
+    <div class="dash-section-title">Carga de ayer / pendientes de días anteriores <span class="sec-n" id="n-pend"></span></div>
+    <div class="dash-table-wrap"><table class="dash-table grid" id="g-pend"></table></div>
   </div>
   <div class="dash-section">
-    <div class="dash-section-title">Programa de hoy</div>
-    <div class="dash-table-wrap"><table class="dash-table"><thead><tr>
-      <th>Fecha</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
-      <th>Transportista</th><th>Eco Caja</th><th>Eco Truck</th>
-      <th>Estatus Carga</th><th>Facturado</th><th>Despacho</th><th>Cruce</th>
-    </tr></thead><tbody id="tbody-hoy"><tr class="empty-row"><td colspan="14">Cargando...</td></tr></tbody></table></div>
+    <div class="dash-section-title">Programa de hoy <span class="sec-n" id="n-hoy"></span></div>
+    <div class="dash-table-wrap"><table class="dash-table grid" id="g-hoy"></table></div>
+  </div>
+  <div class="dash-section">
+    <div class="dash-section-title">Programa de mañana <span class="sec-n" id="n-man"></span>
+      <input type="date" class="sec-date" id="man-fecha" onchange="onManFecha()" title="Día que se planea (por defecto, mañana)"/></div>
+    <div class="dash-table-wrap"><table class="dash-table grid" id="g-man"></table></div>
   </div>
   <div class="dash-section">
     <div class="dash-section-title">Despachados</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <span style="font-size:12px;color:var(--text3)">Filtrar por fecha (opcional)</span>
-      <input type="date" id="desp-fecha" onchange="loadDespachados()"/>
-      <button class="btn btn-outline btn-sm" id="desp-clear" onclick="document.getElementById('desp-fecha').value='';loadDespachados()">Ver todo</button>
-      <button class="btn btn-outline btn-sm" onclick="loadDespachados()">↻</button>
+      <input type="date" id="desp-fecha" onchange="despFiltro()"/>
+      <button class="btn btn-outline btn-sm" id="desp-clear" onclick="document.getElementById('desp-fecha').value='';despFiltro()">Ver todo</button>
       <button class="btn btn-outline btn-sm" onclick="exportDespachadosHistorial()">↓ Historial completo (Excel/CSV)</button>
-      <span class="desp-filtros"><label><input type="checkbox" id="desp-solo-pend" onchange="loadDespachados()"/> Solo pendientes de entrega</label></span>
+      <span class="desp-filtros"><label><input type="checkbox" id="desp-solo-pend" onchange="despFiltro()"/> Solo pendientes de entrega</label></span>
     </div>
     <div class="desp-history" id="desp-history">
-      <table class="dash-table desp-table"><thead><tr>
-        <th>Despacho</th><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th>
-        <th>Transportista</th><th>Caja</th><th>Truck</th><th>Cruce</th><th>Entregado</th>
-      </tr></thead><tbody id="desp-tbody"><tr class="empty-row"><td colspan="12">Cargando...</td></tr></tbody></table>
+      <table class="dash-table grid desp-table" id="g-desp"></table>
     </div>
   </div>
   <div class="dash-section">
@@ -452,6 +505,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 let CFG = JSON.parse(localStorage.getItem('htm_cfg')||'{}');
 let db = null, role = null, unsub = null, authUser = null;
 const ALLOWED_DOMAINS = ['harvesttekmex.com','sfcos.com'];
+// Modo prueba: cualquier dirección distinta a la de producción (o con ?prueba en la URL) trabaja con datos aparte.
+const PROD_HOSTS = ['shippingapp-eight.vercel.app'];
+const PRUEBA = !PROD_HOSTS.includes(location.hostname) || new URLSearchParams(location.search).has('prueba');
+const COL = PRUEBA ? 'programas_prueba' : 'programas';
+function col(){ return db.collection(COL); }
+// Usuarios: los administradores siempre pueden editar y son quienes definen la lista de editores. El resto solo ve.
+const ADMINS = ['lrojas@harvesttekmex.com'];
+let USR = {editores:[]}, unsubUsr = null, autoEntro = false;
+function miEmail(){ return (authUser?.email||'').toLowerCase(); }
+function esAdmin(){ return ADMINS.includes(miEmail()); }
+function puedeEditar(){ return esAdmin() || (USR.editores||[]).includes(miEmail()); }
 function emailAllowed(email){ return !!email && ALLOWED_DOMAINS.includes(email.split('@')[1]?.toLowerCase()); }
 let CAT = { clientes:[], productos:{}, transportistas:[], destinos:[], destinosPorCliente:{} };
 let openPanelId = null; // tracks which camion detail is expanded
@@ -525,9 +589,27 @@ function onAuthChanged(user){
   if(user){
     gate.classList.add('hidden'); cards.classList.remove('hidden');
     const who=document.getElementById('login-who'); if(who)who.textContent=user.email;
+    escucharUsuarios(); pintarLogin();
+    if(!role&&!autoEntro){ autoEntro=true; enterAs('gerente'); }
   } else {
     gate.classList.remove('hidden'); cards.classList.add('hidden');
+    if(unsubUsr){unsubUsr();unsubUsr=null;} USR={editores:[]}; autoEntro=false;
+    if(role) cambiarRol();
   }
+}
+function escucharUsuarios(){
+  if(unsubUsr){unsubUsr();unsubUsr=null;}
+  if(!db||!authUser) return;
+  unsubUsr=db.collection('config').doc('usuarios').onSnapshot(d=>{
+    const data=d.exists?(d.data()||{}):{};
+    USR={editores:(data.editores||[]).map(e=>String(e).toLowerCase().trim()).filter(Boolean)};
+    pintarLogin(); gRender();
+  },e=>console.warn(e));
+}
+function pintarLogin(){
+  const ed=puedeEditar();
+  const r=document.getElementById('login-rol'); if(r) r.textContent=ed?(esAdmin()?'Tu usuario: administrador':'Tu usuario: puede editar'):'Tu usuario: solo lectura';
+  const l=document.getElementById('link-sup'); if(l) l.classList.toggle('hidden',!ed);
 }
 function isStandalonePWA(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone; }
 function signInGoogle(){
@@ -587,10 +669,8 @@ async function enterAs(r){
     document.getElementById('sup-fecha').value=today();
     loadPrograma();
   } else {
-    document.getElementById('ger-desde').value=yesterday();
-    document.getElementById('ger-hasta').value=today();
-    loadDashboard();
-    loadDespachados();
+    document.getElementById('camiones-tbody').innerHTML='';
+    panelStart();
   }
 }
 function logout(){ if(unsub){unsub();unsub=null;} openPanelId=null; role=null; showScr('login-screen'); }
@@ -608,9 +688,9 @@ async function loadPrograma(){
   if(tbody) tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">Cargando...</td></tr>';
   if(unsub){unsub();unsub=null;}
   if(db){
-    unsub=db.collection('programas').where('fecha','==',fecha).orderBy('createdAt','asc')
+    unsub=col().where('fecha','==',fecha)
       .onSnapshot(snap=>{
-        renderCamiones(snap.docs.map(d=>({id:d.id,...d.data()})),fecha);
+        renderCamiones(snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>!c.eliminado).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')),fecha);
       },err=>{
         console.warn(err);
         const loc=JSON.parse(localStorage.getItem('htm_'+fecha)||'[]');
@@ -923,7 +1003,7 @@ function mkProd(cid,oi,pi,p,cli,total){
 // ── DB HELPERS ──
 async function updF(id,field,val){
   setSS(id,'saving');
-  if(db){ await db.collection('programas').doc(id).update({[field]:val}); }
+  if(db){ await col().doc(id).update({[field]:val}); }
   else { locUpd(id,field,val); }
   setSS(id,'saved');
 }
@@ -949,7 +1029,7 @@ async function addCamion(){
     transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
     ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
     cruceListo:false,horaCruce:'',createdAt:new Date().toISOString()};
-  if(db){ await db.collection('programas').add(c); }
+  if(db){ await col().add(c); }
   else {
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
     c.id='loc_'+Date.now(); a.push(c); localStorage.setItem(k,JSON.stringify(a));
@@ -960,7 +1040,11 @@ async function addCamion(){
 
 async function delCamion(id){
   if(!confirm('¿Eliminar este camión del programa?'))return;
-  if(db){ await db.collection('programas').doc(id).delete(); }
+  if(db){
+    const d=await col().doc(id).get();
+    if((d.data()?.ordenes||[]).some(o=>o.ventasKey)) await col().doc(id).update({eliminado:true,eliminadoPor:miEmail(),eliminadoAt:new Date().toISOString()});
+    else await col().doc(id).delete();
+  }
   else {
     const fecha=document.getElementById('sup-fecha').value;
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
@@ -991,6 +1075,7 @@ async function setEstatus(id,btn,val){
 function logout(){ cambiarRol(); }
 function cambiarRol(){
   if(unsub){unsub();unsub=null;}
+  panelStop();
   openPanelId=null; role=null;
   showScr('login-screen');
 }
@@ -1035,13 +1120,13 @@ async function toggleCruce(id,btn){
 }
 
 async function getOrdenes(id){
-  if(db){ const d=await db.collection('programas').doc(id).get(); return d.data()?.ordenes||[]; }
+  if(db){ const d=await col().doc(id).get(); return d.data()?.ordenes||[]; }
   const fecha=document.getElementById('sup-fecha').value;
   const a=JSON.parse(localStorage.getItem('htm_'+fecha)||'[]');
   return a.find(c=>c.id===id)?.ordenes||[];
 }
 async function setOrdenes(id,ords){
-  if(db){ await db.collection('programas').doc(id).update({ordenes:ords}); }
+  if(db){ await col().doc(id).update({ordenes:ords}); }
   else {
     const fecha=document.getElementById('sup-fecha').value;
     const k='htm_'+fecha; let a=JSON.parse(localStorage.getItem(k)||'[]');
@@ -1148,13 +1233,13 @@ function planSync(trucks,ventas,fecha,opts){
   trucks.forEach(c=>(c.ordenes||[]).forEach(o=>{ const k=llaveOrden(o); if(k) importadas.add(k); }));
   const reusadas=new Set();
   trucks.forEach(c=>{
-    if(c.despachado) return;
+    if(c.despachado||c.eliminado) return;
     const ords=c.ordenes||[];
     if(!ords.some(o=>o.ventasKey)) return;
     const aplicar=esEspera(c)||(opts.forzar&&opts.forzar.has(c.id));
     const nuevas=ords.map(o=>({...o}));
     const cambios=[], avisos=[], fechasNuevas=new Set();
-    let tocado=false;
+    let tocado=false, fuera=false;
     nuevas.forEach((o,i)=>{
       if(!o.ventasKey) return;
       let v=ventas.byKey[o.ventasKey];
@@ -1166,7 +1251,7 @@ function planSync(trucks,ventas,fecha,opts){
           x.cliente===s.c&&x.destino===s.d&&x.cosecha===s.f&&JSON.stringify(x.productos.map(p=>p.producto).sort())===prods);
         if(cands.length===1){ v=cands[0]; reusadas.add(v.key); }
       }
-      if(!v){ avisos.push(`SO ${o.qt||'PENDIENTE'} ya no aparece en ventas`); return; }
+      if(!v){ avisos.push(`SO ${o.qt||'PENDIENTE'} ya no aparece en ventas`); fuera=true; return; }
       const snap=snapVentas(v);
       if(snap===o.ventasSnap&&v.key===o.ventasKey) return;
       const d=diffVentas(o.ventasSnap,v);
@@ -1194,10 +1279,11 @@ function planSync(trucks,ventas,fecha,opts){
     }
     const firma=avisos.join('|');
     const firmaActual=c.ventasAviso?.texto?.join('|')||'';
-    if(firma!==firmaActual) update.ventasAviso=avisos.length?{texto:avisos,hora:opts.hora}:null;
+    if(firma!==firmaActual) update.ventasAviso=avisos.length?{texto:avisos,hora:opts.hora,fuera}:null;
     if(Object.keys(update).length) acciones.push({id:c.id,update,auto:tocado,movido:!!update.fecha});
   });
-  const nuevasSO=ventas.ordenes.filter(v=>v.cosecha===fecha&&!importadas.has(v.key)&&!reusadas.has(v.key));
+  const fechas=new Set([].concat(fecha));
+  const nuevasSO=ventas.ordenes.filter(v=>fechas.has(v.cosecha)&&!importadas.has(v.key)&&!reusadas.has(v.key));
   return {acciones,nuevasSO};
 }
 
@@ -1212,48 +1298,87 @@ async function fetchVentas(fecha){
   VENTAS={ordenes:j.ordenes||[],byKey:Object.fromEntries((j.ordenes||[]).map(o=>[o.key,o])),hojas:j.hojas||[],at:new Date()};
 }
 async function fetchVentanaCamiones(fecha){
-  const snap=await db.collection('programas').where('fecha','>=',addDays(fecha,-7)).where('fecha','<=',addDays(fecha,21)).get();
+  const snap=await col().where('fecha','>=',addDays(fecha,-7)).where('fecha','<=',addDays(fecha,21)).get();
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
-function setVentasStatus(t){ const e=document.getElementById('ventas-status'); if(e) e.textContent=t; }
+function setVentasStatus(t){ ['ventas-status','pan-status'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=t; }); }
+// Días que se revisan contra ventas: en el panel ayer, hoy y "mañana"; en la vista de supervisor el día elegido.
+function ventasFechas(){
+  if(role==='supervisor') return [document.getElementById('sup-fecha').value||today()];
+  return [...new Set([yesterday(),today(),manFecha()])];
+}
 
-async function revisarVentas(manual,forzar){
-  if(role!=='supervisor') return;
-  if(!ventasUrl()){ setVentasStatus(''); if(manual) toast('Falta configurar el puente de ventas (⚙ Configurar)','error'); return; }
-  if(!db||!authUser){ if(manual) toast('Requiere conexión e inicio de sesión','error'); return; }
+// importar=true (botón Actualizar del panel): además crea los camiones de los SO nuevos, uno por SO.
+async function revisarVentas(manual,forzar,importar){
+  const res={ok:false,auto:0,mov:0,imp:0,nuevas:0};
+  if(!role||!puedeEditar()) return res;
+  if(!ventasUrl()){ setVentasStatus(''); if(manual) toast('Falta configurar el puente de ventas (⚙ Configurar)','error'); return res; }
+  if(!db||!authUser){ if(manual) toast('Requiere conexión e inicio de sesión','error'); return res; }
   if(ventasBusy){
-    if(!manual&&!forzar) return;
+    if(!manual&&!forzar) return res;
     while(ventasBusy) await new Promise(r=>setTimeout(r,300));
   }
   ventasBusy=true; setVentasStatus('Revisando ventas...');
-  const fecha=document.getElementById('sup-fecha').value||today();
+  const fechas=ventasFechas();
+  const base=role==='supervisor'?fechas[0]:today();
   try{
-    await fetchVentas(fecha);
-    ventasWin=await fetchVentanaCamiones(fecha);
-    const {acciones,nuevasSO}=planSync(ventasWin,VENTAS,fecha,{hora:nowTime(),hoy:today(),forzar});
+    await fetchVentas(base);
+    ventasWin=await fetchVentanaCamiones(base);
+    const {acciones,nuevasSO}=planSync(ventasWin,VENTAS,fechas,{hora:nowTime(),hoy:today(),forzar});
     for(const a of acciones){
-      await db.collection('programas').doc(a.id).update(a.update);
+      await col().doc(a.id).update(a.update);
       const c=ventasWin.find(x=>x.id===a.id); if(c) Object.assign(c,a.update);
     }
-    VENTAS_NUEVAS=nuevasSO;
+    if(importar&&nuevasSO.length){ res.imp=await importarNuevas(nuevasSO); VENTAS_NUEVAS=[]; }
+    else VENTAS_NUEVAS=nuevasSO;
     renderVentasBanner();
-    const auto=acciones.filter(a=>a.auto).length, mov=acciones.filter(a=>a.movido).length;
-    if(auto) toast(`Ventas: ${auto>1?auto+' camiones actualizados':'1 camión actualizado'}${mov?` (${mov} movido${mov>1?'s':''} de fecha)`:''}`,'success');
-    setVentasStatus(`Ventas revisado ${nowTime()}`);
+    res.auto=acciones.filter(a=>a.auto).length; res.mov=acciones.filter(a=>a.movido).length; res.nuevas=VENTAS_NUEVAS.length; res.ok=true;
+    if(res.auto&&!importar) toast(`Ventas: ${res.auto>1?res.auto+' camiones actualizados':'1 camión actualizado'}${res.mov?` (${res.mov} movido${res.mov>1?'s':''} de fecha)`:''}`,'success');
+    setVentasStatus(`Ventas revisado ${hhmm()}`);
   }catch(e){
     console.warn(e); setVentasStatus('Ventas: '+e.message);
     if(manual) toast('No se pudo leer ventas: '+e.message,'error');
   }
   ventasBusy=false;
+  return res;
+}
+
+// Crea un camión por cada SO nuevo. El id sale del SO, así dos personas que actualizan a la vez no duplican camiones.
+async function importarNuevas(lista){
+  const orden=[...lista].sort((a,b)=>a.cosecha.localeCompare(b.cosecha)||(a.prioridad||'zz').localeCompare(b.prioridad||'zz')||a.cliente.localeCompare(b.cliente));
+  const base=Date.now(); let n=0;
+  for(let i=0;i<orden.length;i++){
+    const v=orden[i], o=ordenDesdeVentas(v);
+    const ref=col().doc('v_'+v.key.replace(/[^A-Za-z0-9]+/g,'_').slice(0,120));
+    const creado=await db.runTransaction(async tx=>{
+      const d=await tx.get(ref); if(d.exists) return false;
+      tx.set(ref,{fecha:v.cosecha,ordenes:[o],ventasKeys:[o.ventasKey],origen:'ventas',
+        transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
+        ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
+        cruceListo:false,horaCruce:'',createdAt:new Date(base+i).toISOString()});
+      return true;
+    });
+    if(creado) n++;
+  }
+  return n;
 }
 
 function renderVentasBanner(){
-  const b=document.getElementById('ventas-banner'); if(!b) return;
   const n=VENTAS_NUEVAS.length;
-  if(!n){ b.classList.add('hidden'); b.innerHTML=''; return; }
-  b.classList.remove('hidden');
-  b.innerHTML=`<span>📥 <b>${n}</b> SO en ventas sin importar para este día</span>
-    <button class="btn btn-primary btn-sm" onclick="abrirImportar()">Ver e importar</button>`;
+  const b=document.getElementById('ventas-banner');
+  if(b){
+    if(!n||role!=='supervisor'){ b.classList.add('hidden'); b.innerHTML=''; }
+    else { b.classList.remove('hidden');
+      b.innerHTML=`<span>📥 <b>${n}</b> SO en ventas sin importar para este día</span>
+        <button class="btn btn-primary btn-sm" onclick="abrirImportar()">Ver e importar</button>`; }
+  }
+  const p=document.getElementById('pan-banner');
+  if(p){
+    if(!n||role!=='gerente'){ p.classList.add('hidden'); p.innerHTML=''; }
+    else { p.classList.remove('hidden');
+      p.innerHTML=`<span>📥 Ventas tiene <b>${n}</b> SO nuevo${n>1?'s':''} (ayer, hoy o mañana) que aún no está${n>1?'n':''} en el panel</span>
+        <button class="btn btn-primary btn-sm" onclick="panelActualizar()">↻ Actualizar</button>`; }
+  }
 }
 
 function ventasBadge(c){
@@ -1261,18 +1386,18 @@ function ventasBadge(c){
   if(c.ventasActualizado&&c.ventasActualizado.fecha===today()) return '<span title="Actualizado por ventas">🔄 </span>';
   return '';
 }
-function ventasNotice(c){
+function ventasNotice(c,ed=true){
   let h='';
   if(c.ventasAviso?.texto?.length){
     h+=`<div class="ventas-box aviso"><b>⚠️ Ventas cambió este camión</b> (${esc(c.ventasAviso.hora||'')})
       <ul>${c.ventasAviso.texto.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
-      <button class="btn btn-sm btn-primary" onclick="aplicarAvisoVentas('${c.id}')">Aplicar cambios</button>
-      <button class="btn btn-sm btn-outline" onclick="ignorarAvisoVentas('${c.id}')">Ignorar</button></div>`;
+      ${ed?`<button class="btn btn-sm btn-primary" onclick="aplicarAvisoVentas('${c.id}')">Aplicar cambios</button>
+      <button class="btn btn-sm btn-outline" onclick="ignorarAvisoVentas('${c.id}')">Ignorar</button>`:''}</div>`;
   }
   if(c.ventasActualizado&&c.ventasActualizado.fecha===today()&&c.ventasActualizado.texto?.length){
     h+=`<div class="ventas-box ok"><b>🔄 Actualizado por ventas a las ${esc(c.ventasActualizado.hora||'')}</b>
       <ul>${c.ventasActualizado.texto.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
-      <button class="btn btn-sm btn-outline" onclick="updF('${c.id}','ventasActualizado',null)">Entendido</button></div>`;
+      ${ed?`<button class="btn btn-sm btn-outline" onclick="updF('${c.id}','ventasActualizado',null)">Entendido</button>`:''}</div>`;
   }
   return h;
 }
@@ -1282,7 +1407,7 @@ async function aplicarAvisoVentas(id){
 }
 async function ignorarAvisoVentas(id){
   if(!db) return;
-  const d=await db.collection('programas').doc(id).get(); const c=d.data(); if(!c) return;
+  const d=await col().doc(id).get(); const c=d.data(); if(!c) return;
   // Acepta lo que hoy dice ventas como referencia, sin cambiar lo capturado.
   // Si el SO ya no existe en ventas, el camión se desvincula (queda como manual).
   const ords=(c.ordenes||[]).map(o=>{
@@ -1291,7 +1416,7 @@ async function ignorarAvisoVentas(id){
     if(v) return {...o,ventasSnap:snapVentas(v)};
     const {ventasKey,ventasSnap,...rest}=o; return rest;
   });
-  await db.collection('programas').doc(id).update({ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey).filter(Boolean),ventasAviso:null});
+  await col().doc(id).update({ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey).filter(Boolean),ventasAviso:null});
   toast('Aviso descartado');
 }
 
@@ -1349,7 +1474,7 @@ async function importarSeleccion(juntar){
   try{
     for(let i=0;i<grupos.length;i++){
       const ords=grupos[i].map(ordenDesdeVentas);
-      await db.collection('programas').add({
+      await col().add({
         fecha,ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey),origen:'ventas',
         transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
         ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
@@ -1363,73 +1488,200 @@ async function importarSeleccion(juntar){
 }
 // ── FIN VENTAS ──
 
-// ── DASHBOARD ──
-async function loadDashboard(){
-  const desde=document.getElementById('ger-desde').value;
-  const hasta=document.getElementById('ger-hasta').value;
-  if(!desde||!hasta)return;
-  let all=[];
-  if(db){
-    try{
-      const snap=await db.collection('programas').where('fecha','>=',desde).where('fecha','<=',hasta).orderBy('fecha','asc').orderBy('createdAt','asc').get();
-      all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    }catch(e){ console.warn(e); toast('No se pudo cargar el dashboard: '+e.message,'error'); }
-  } else {
-    for(let d=new Date(desde+'T00:00:00');d<=new Date(hasta+'T00:00:00');d.setDate(d.getDate()+1)){
-      const k='htm_'+localYMD(d);
-      all.push(...JSON.parse(localStorage.getItem(k)||'[]'));
-    }
-  }
-  const hoy=today();
-  const ayerArr=all.filter(c=>c.fecha<hoy && !c.despachado);
-  const hoyArr=all.filter(c=>c.fecha===hoy);
+// ── PANEL ÚNICO (tabla editable tipo hoja de cálculo, en vivo) ──
+// Un renglón por camión. Lo que viene de ventas está bloqueado; de Transportista en adelante se edita en la celda.
+// Como cada camión es un solo registro, transportista / cajas / estatus se capturan una vez y valen para todos sus productos.
+let WIN=[], DESP=[], TRK={}, unsubWin=null, unsubDesp=null, winOk=false, despOk=false, panelDia='';
+let GOPEN=new Set(), GDIRTY=false, despLimit=20, despTotal=0, despScrollBound=false;
+const DESP_PAGE=20;
+const ESTATUS=['En espera','Cargando','Cargado','Fuera de rampa'];
+function estKey(s){ return s==='Cargando'?'cargando':s==='Cargado'?'cargado':s==='Fuera de rampa'?'fuera':'espera'; }
+function hhmm(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+// Horas guardadas por la versión anterior pueden venir como "05:30 p.m."; el campo de hora necesita 24 h.
+function to24(t){
+  t=String(t||'').trim();
+  let m=t.match(/^(\d{1,2}):(\d{2})$/); if(m) return m[1].padStart(2,'0')+':'+m[2];
+  m=t.match(/^(\d{1,2}):(\d{2})\s*([ap])/i); if(!m) return '';
+  let h=Number(m[1])%12; if(m[3].toLowerCase()==='p') h+=12;
+  return String(h).padStart(2,'0')+':'+m[2];
+}
+function manFecha(){ return document.getElementById('man-fecha')?.value||addDays(today(),1); }
+function ordsDe(c){ return (c.ordenes&&c.ordenes.length)?c.ordenes:[{}]; }
+function esDeVentas(c){ return (c.ordenes||[]).some(o=>o.ventasKey); }
 
-  document.getElementById('k-hoy').textContent=hoyArr.length;
-  document.getElementById('k-cargados').textContent=hoyArr.filter(c=>c.estatusCarga==='Cargado').length;
-  document.getElementById('k-despachados').textContent=all.filter(c=>c.despachado).length;
-  document.getElementById('k-cruzados').textContent=all.filter(c=>c.cruceListo).length;
-  document.getElementById('k-pendientes').textContent=all.filter(c=>!c.cruceListo).length;
-  document.getElementById('k-entregados').textContent=all.filter(c=>c.entregado).length;
+const GCOLS_BASE=['cliente','so','producto','tarimas','destino','entrega','transp','caja','truck','rampa','estatus','fac','desp','cruce'];
+const GCOLS={
+  pend:['cliente','so','fecha',...GCOLS_BASE.slice(2)],
+  hoy:GCOLS_BASE, man:GCOLS_BASE,
+  desp:['cliente','so','despf','producto','tarimas','destino','entrega','transp','caja','truck','cruce','entregado']
+};
+const GLBL={cliente:'Cliente',so:'SO',fecha:'Carga',despf:'Despacho',producto:'Producto',tarimas:'Tarimas',destino:'Destino',entrega:'Entrega',
+  transp:'Transportista',caja:'Eco Caja',truck:'Eco Truck',rampa:'Rampa',estatus:'Estatus Carga',fac:'Facturado',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
+const GLOCK=new Set(['cliente','so','fecha','despf','producto','tarimas','destino','entrega']);
+function gCls(k){ return (k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(GLOCK.has(k)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':''); }
+function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k)}">${GLBL[k]}</th>`).join('')+'</tr>'; }
 
-  renderTransportDetail(all);
-
-  fillTabla('tbody-ayer',ayerArr);
-  fillTabla('tbody-hoy',hoyArr);
+const TOGS={
+  fac:{flag:'facturado',hora:'facturadoAt',txt:'Facturado',on:'status-si',off:'status-pendiente',q:'¿Quitar la marca de "Facturado y reportado"?'},
+  desp:{flag:'despachado',hora:'horaDespacho',txt:'Despachado',on:'status-despachado',off:'status-pendiente',q:'¿Quitar la marca de "Despachado"? El camión saldrá del historial de despachados.'},
+  cruce:{flag:'cruceListo',hora:'horaCruce',txt:'Cruzado',on:'status-cruzado',off:'status-cruce-pendiente',q:'¿Quitar la marca de "Cruce listo"?'}
+};
+function gTime(id,campo,v){ return `<input type="time" class="cell-time" value="${to24(v)}" onchange="gSetHora('${id}','${campo}',this)" title="Corregir hora"/>`; }
+function gTog(c,kind,ed){
+  const T=TOGS[kind], on=!!c[T.flag], t=c[T.hora]||'';
+  if(!ed) return `<span class="status-pill ${on?T.on:T.off}">${on?('✓ '+esc(t||T.txt)):'Pendiente'}</span>`;
+  return `<button class="tg ${on?'on '+T.on:''}" onclick="gToggleFlag('${c.id}','${kind}')">${on?'✓ '+T.txt:'Pendiente'}</button>`+(on?gTime(c.id,T.hora,t):'');
 }
 
-function fillTabla(tid,list){
-  const tb=document.getElementById(tid);
-  if(!list.length){ tb.innerHTML='<tr class="empty-row"><td colspan="14">Sin registros</td></tr>'; return; }
-  const rows=[];
-  list.forEach(c=>{
-    const ords=c.ordenes||[{}];
-    ords.forEach(o=>{
-      const prods=o.productos||[{}];
-      prods.forEach(p=>{
-        rows.push({
-          fecha:fmtD(c.fecha),cliente:o.cliente||'–',qt:o.qt||'–',
-          prod:p.producto||'–',tar:p.tarimas||'–',dest:o.destino||'–',ent:fmtEntrega(o.fechaEntrega),
-          trans:c.transportista||'–',eBox:c.ecoBox||'–',eTruck:c.ecoTruck||'–',
-          sc:c.estatusCarga||'En espera',scAt:c.horaCargado||'',
-          fac:c.facturado,facAt:c.facturadoAt||'',
-          des:c.despachado,desAt:c.horaDespacho||'',
-          cru:c.cruceListo,cruAt:c.horaCruce||''
-        });
-      });
-    });
+function gCell(c,k,sec,ed){
+  const id=c.id, ords=ordsDe(c), o0=ords[0]||{};
+  switch(k){
+    case 'cliente': return ventasBadge(c)+esc(o0.cliente||'–')+(ords.length>1?` <span class="mas">+${ords.length-1}</span>`:'');
+    case 'so': return esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–');
+    case 'fecha': return fmtCorta(c.fecha);
+    case 'despf': return fmtCorta(c.despachadoFecha||c.fecha)+' '+esc(c.horaDespacho||'');
+    case 'producto': {
+      const prods=ords.flatMap(o=>(o.productos||[]).filter(p=>p.producto));
+      const open=GOPEN.has(sec+':'+id);
+      return `<button class="prod-btn" onclick="gToggle('${sec}','${id}')" title="Ver todos los productos y el detalle del camión"><span class="chev${open?' open':''}">▸</span> ${esc(prods[0]?.producto||'(sin producto)')}${prods.length>1?` <span class="mas">+${prods.length-1}</span>`:''}</button>`;
+    }
+    case 'tarimas': { const t=ords.reduce((s,o)=>s+(o.productos||[]).reduce((a,p)=>a+(Number(p.tarimas)||0),0),0); return t||'–'; }
+    case 'destino': return esc([...new Set(ords.map(o=>o.destino).filter(Boolean))].join(', ')||'–');
+    case 'entrega': return entregaCamion(c);
+    case 'transp':
+      if(!ed) return esc(c.transportista||'–');
+      return `<select class="cell-sel${c.transportista?'':' vacio'}" onchange="gSet('${id}','transportista',this)"><option value="">Asignar…</option>${withVal(CAT.transportistas,c.transportista).map(t=>`<option value="${esc(t)}"${t===c.transportista?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
+    case 'caja': return ed?`<input class="cell-in" type="text" value="${esc(c.ecoBox||'')}" onchange="gSet('${id}','ecoBox',this)"/>`:esc(c.ecoBox||'–');
+    case 'truck': return ed?`<input class="cell-in" type="text" value="${esc(c.ecoTruck||'')}" onchange="gSet('${id}','ecoTruck',this)"/>`:esc(c.ecoTruck||'–');
+    case 'rampa': return ed?`<input class="cell-in corto" type="text" value="${esc(c.rampa||'')}" onchange="gSet('${id}','rampa',this)"/>`:esc(c.rampa||'–');
+    case 'estatus': {
+      const sc=ESTATUS.includes(c.estatusCarga)?c.estatusCarga:'En espera', key=estKey(sc);
+      if(!ed) return `<span class="status-pill status-${key}">${sc==='Cargado'&&c.horaCargado?'Cargado '+esc(c.horaCargado):sc}</span>`;
+      return `<select class="pill-sel status-${key}" onchange="gEstatus('${id}',this)">${ESTATUS.map(s=>`<option${s===sc?' selected':''}>${s}</option>`).join('')}</select>`+(sc==='Cargado'?gTime(id,'horaCargado',c.horaCargado):'');
+    }
+    case 'fac': return gTog(c,'fac',ed);
+    case 'desp': return gTog(c,'desp',ed);
+    case 'cruce': return gTog(c,'cruce',ed);
+    case 'entregado':
+      if(!ed) return `<span class="status-pill ${c.entregado?'status-si':'status-pendiente'}">${c.entregado?'✓ Entregado':'Pendiente'}</span>`;
+      return c.entregado
+        ?`<button class="btn-entregado done" onclick="gEntregado('${id}')" title="Entregado ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')} · marcado por ${esc(c.entregadoPor||'')}">✓ Entregado</button>`
+        :`<button class="btn-entregado" onclick="gEntregado('${id}')">☐ Entregado</button>`;
+  }
+  return '';
+}
+
+function gDetail(c,sec,ed){
+  const ords=ordsDe(c), deVentas=esDeVentas(c), id=c.id;
+  let h=ventasNotice(c,ed);
+  if(!deVentas&&ed){
+    h+=`<div class="ventas-info">Camión manual: aquí puedes capturar cliente, SO, productos y destino.</div>
+      <div style="max-width:800px"><div id="ords-${id}">${ords.map((o,i)=>mkOrden(id,i,o,ords.length)).join('')}</div>
+      ${ords.length<3?`<button class="btn-add-orden" onclick="addOrden('${id}')">+ Agregar orden</button>`:''}</div>`;
+  } else {
+    h+=`<table class="g-lines"><thead><tr><th>Cliente</th><th>SO</th><th>Producto</th><th>Tarimas</th><th>Destino</th><th>Entrega</th><th>PO</th><th>Tarima</th></tr></thead><tbody>`+
+      ords.flatMap(o=>((o.productos&&o.productos.length)?o.productos:[{}]).map(p=>`<tr><td>${esc(o.cliente||'–')}</td><td class="mono">${esc(o.qt||'–')}</td><td>${esc(p.producto||'–')}</td><td class="mono">${esc(p.tarimas||'–')}</td><td>${esc(o.destino||'–')}</td><td class="mono">${fmtEntrega(o.fechaEntrega)}</td><td class="mono">${esc(o.po||'–')}</td><td>${esc(o.tipoTarima||'–')}</td></tr>`)).join('')+
+      `</tbody></table>`;
+    if(deVentas) h+=`<div class="ventas-info">🔒 Estos datos vienen del programa de ventas (Shipping Orders) y cambian con el botón Actualizar.</div>`;
+  }
+  if(ed){
+    let acc='';
+    if(!deVentas) acc+=`<label>Fecha de carga <input type="date" value="${esc(c.fecha||'')}" onchange="gSetFecha('${id}',this)"/></label>`;
+    if(!c.despachado&&ords.length<3){
+      const cands=WIN.filter(x=>x.id!==id&&!x.eliminado&&x.fecha===c.fecha&&!x.despachado&&esEspera(x)&&ords.length+ordsDe(x).length<=3);
+      if(cands.length) acc+=`<select onchange="gJuntar('${id}',this)"><option value="">Juntar con otro camión…</option>${cands.map(x=>{const o=ordsDe(x)[0];return `<option value="${x.id}">${esc(o.cliente||'–')} · SO ${esc(ordsDe(x).map(y=>y.qt).filter(Boolean).join(', ')||'–')}</option>`;}).join('')}</select>`;
+    }
+    acc+=`<button class="btn btn-danger btn-sm" onclick="gEliminar('${id}')">Eliminar camión</button>`;
+    h+=`<div class="g-acc">${acc}</div>`;
+  }
+  return h;
+}
+
+function gTruckHtml(c,sec,ed){
+  const cols=GCOLS[sec], open=GOPEN.has(sec+':'+c.id);
+  let h=`<tr class="g-row${open?' g-open':''}">`+cols.map(k=>{
+    let extra='';
+    if(k==='destino'&&c.ventasAviso?.fuera) extra='<span class="tag-fuera" title="Este SO ya no aparece en la hoja de ventas">No está en programa</span>';
+    return `<td class="${gCls(k)}">${gCell(c,k,sec,ed)}${extra}</td>`;
+  }).join('')+'</tr>';
+  if(open) h+=`<tr class="g-detail"><td colspan="${cols.length}"><div class="g-box">${gDetail(c,sec,ed)}</div></td></tr>`;
+  return h;
+}
+
+// Renglón donde alguien está escribiendo: se actualizan las demás celdas y se deja intacta la que tiene el cursor.
+// Devuelve true si el renglón quedó completamente al día.
+function gPatch(tb,html,act){
+  const tmp=document.createElement('tbody'); tmp.innerHTML=html;
+  if(tmp.rows.length!==tb.rows.length) return false;
+  for(let i=0;i<tb.rows.length;i++) if(tb.rows[i].cells.length!==tmp.rows[i].cells.length) return false;
+  let completo=true;
+  for(let i=0;i<tb.rows.length;i++){
+    tb.rows[i].className=tmp.rows[i].className;
+    for(let j=0;j<tb.rows[i].cells.length;j++){
+      const o=tb.rows[i].cells[j], n=tmp.rows[i].cells[j];
+      if(o.innerHTML===n.innerHTML) continue;
+      if(o.contains(act)) completo=false; else o.innerHTML=n.innerHTML;
+    }
+  }
+  if(completo) tb._h=html;
+  return completo;
+}
+
+// Pinta una sección cambiando solo los camiones que cambiaron. No toca el renglón donde alguien está escribiendo.
+function gFill(sec,list,ed,listo,pie){
+  const table=document.getElementById('g-'+sec); if(!table||!table.tHead) return;
+  const n=GCOLS[sec].length;
+  const want=list.map(c=>({key:c.id,html:gTruckHtml(c,sec,ed)}));
+  if(!list.length) want.push({key:'__msg',html:`<tr class="empty-row"><td colspan="${n}">${listo?'Sin registros':'Cargando...'}</td></tr>`});
+  else if(pie) want.push({key:'__msg',html:`<tr class="empty-row"><td colspan="${n}" style="padding:10px;font-size:12px">${pie}</td></tr>`});
+  const have=new Map([...table.tBodies].map(tb=>[tb.dataset.id,tb]));
+  const act=document.activeElement, editando=act&&['INPUT','SELECT','TEXTAREA'].includes(act.tagName);
+  let prev=table.tHead;
+  want.forEach(w=>{
+    let tb=have.get(w.key);
+    if(!tb){ tb=document.createElement('tbody'); tb.dataset.id=w.key; tb.innerHTML=w.html; tb._h=w.html; }
+    else {
+      have.delete(w.key);
+      if(tb._h!==w.html){
+        if(editando&&tb.contains(act)){ if(!gPatch(tb,w.html,act)) GDIRTY=true; }
+        else { tb.innerHTML=w.html; tb._h=w.html; }
+      }
+    }
+    if(tb.previousElementSibling!==prev||tb.parentNode!==table) prev.after(tb);
+    prev=tb;
   });
-  tb.innerHTML=rows.map(r=>{
-    const sc=r.sc==='En espera'?'espera':r.sc==='Cargando'?'cargando':r.sc==='Cargado'?'cargado':'fuera';
-    return`<tr>
-      <td class="mono">${r.fecha}</td><td>${r.cliente}</td><td class="mono">${r.qt}</td>
-      <td>${r.prod}</td><td class="mono">${r.tar}</td><td>${r.dest}</td><td class="mono" style="white-space:nowrap">${r.ent}</td>
-      <td>${r.trans}</td><td class="mono">${r.eBox}</td><td class="mono">${r.eTruck}</td>
-      <td><span class="status-pill status-${sc}">${r.sc==='Cargado'&&r.scAt?'Cargado '+r.scAt:r.sc}</span></td>
-      <td><span class="status-pill ${r.fac?'status-si':'status-pendiente'}">${r.fac?'✓ '+r.facAt:'Pendiente'}</span></td>
-      <td><span class="status-pill ${r.des?'status-despachado':'status-pendiente'}">${r.des?'Desp. '+r.desAt:'Pendiente'}</span></td>
-      <td><span class="status-pill ${r.cru?'status-cruzado':'status-cruce-pendiente'}">${r.cru?r.cruAt:'Pendiente'}</span></td>
-    </tr>`;
-  }).join('');
+  have.forEach(tb=>tb.remove());
+}
+
+function gRender(){
+  if(role!=='gerente'||!panelDia) return;
+  const ed=puedeEditar(), hoy=today(), ayer=yesterday(), man=manFecha();
+  document.querySelectorAll('#gerente-screen .solo-ed').forEach(e=>e.classList.toggle('hidden',!ed));
+  document.querySelectorAll('#gerente-screen .solo-admin').forEach(e=>e.classList.toggle('hidden',!esAdmin()));
+  const badge=document.getElementById('pan-badge'); if(badge) badge.textContent=ed?'EDICIÓN':'SOLO LECTURA';
+  TRK={}; DESP.forEach(c=>TRK[c.id]=c); WIN.forEach(c=>TRK[c.id]=c);
+  const vivos=WIN.filter(c=>!c.eliminado);
+  const pend=vivos.filter(c=>c.fecha<hoy&&!c.despachado), hoyL=vivos.filter(c=>c.fecha===hoy), manL=vivos.filter(c=>c.fecha===man);
+  gFill('pend',pend,ed,winOk); gFill('hoy',hoyL,ed,winOk); gFill('man',manL,ed,winOk);
+  [['n-pend',pend],['n-hoy',hoyL],['n-man',manL]].forEach(([i,l])=>{ const e=document.getElementById(i); if(e) e.textContent=winOk?l.length:''; });
+
+  const fFecha=document.getElementById('desp-fecha').value;
+  let dl=DESP.filter(c=>!c.eliminado);
+  if(fFecha) dl=dl.filter(c=>(c.despachadoFecha||c.fecha)===fFecha);
+  if(document.getElementById('desp-solo-pend').checked) dl=dl.filter(c=>!c.entregado);
+  dl.sort((a,b)=>((b.despachadoFecha||b.fecha||'')+to24(b.horaDespacho)).localeCompare((a.despachadoFecha||a.fecha||'')+to24(a.horaDespacho)));
+  despTotal=dl.length;
+  gFill('desp',dl.slice(0,despLimit),ed,despOk,despLimit>=dl.length?'— fin del historial —':'Desliza para ver más…');
+
+  const base=vivos.filter(c=>c.fecha>=ayer&&c.fecha<=hoy);
+  const set=(i,v)=>{ const e=document.getElementById(i); if(e) e.textContent=winOk?v:'–'; };
+  set('k-hoy',hoyL.length);
+  set('k-cargados',hoyL.filter(c=>c.estatusCarga==='Cargado').length);
+  set('k-despachados',base.filter(c=>c.despachado).length);
+  set('k-cruzados',base.filter(c=>c.cruceListo).length);
+  set('k-pendientes',base.filter(c=>!c.cruceListo).length);
+  set('k-entregados',base.filter(c=>c.entregado).length);
+  renderTransportDetail(base);
 }
 
 function renderTransportDetail(all){
@@ -1438,114 +1690,180 @@ function renderTransportDetail(all){
   const entries=Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
   document.getElementById('transport-detail-grid').innerHTML = entries.length ? entries.map(([t,list])=>`
     <div class="transport-block">
-      <div class="transport-block-header"><span>${t}</span><span>${list.length} camión${list.length===1?'':'es'}</span></div>
+      <div class="transport-block-header"><span>${esc(t)}</span><span>${list.length} camión${list.length===1?'':'es'}</span></div>
       ${list.map(c=>{
-        const o=(c.ordenes||[{}])[0]||{};
-        return `<div class="transport-block-line"><span class="mono">1</span><span>${o.cliente||'–'}</span><span style="color:var(--text3)">${o.destino||'–'}</span></div>`;
+        const o=ordsDe(c)[0]||{};
+        return `<div class="transport-block-line"><span class="mono">1</span><span>${esc(o.cliente||'–')}</span><span style="color:var(--text3)">${esc(o.destino||'–')}</span></div>`;
       }).join('')}
     </div>`).join('') : '<span style="color:var(--text3);font-size:13px">Sin datos</span>';
 }
 
-// ── DESPACHADOS (historial de scroll infinito, estilo vacuumlog) ──
-let despAll=[], despShown=0;
-const DESP_PAGE=20;
-let despScrollBound=false;
-
-async function loadDespachados(){
-  const fecha=document.getElementById('desp-fecha').value; // vacío = historial completo
-  const box=document.getElementById('desp-history');
-  const prevScroll=box.scrollTop, prevShown=despShown;
-  const tb=document.getElementById('desp-tbody');
-  if(!prevShown) tb.innerHTML='<tr class="empty-row"><td colspan="12">Cargando...</td></tr>';
-  let list=[];
-  if(db){
-    try{
-      const snap=await db.collection('programas').where('despachado','==',true).get();
-      list=snap.docs.map(d=>({id:d.id,...d.data()}));
-    }catch(e){ console.warn(e); toast('No se pudo cargar despachados: '+e.message,'error'); }
-  } else {
-    list=(JSON.parse(localStorage.getItem('htm_'+(fecha||today()))||'[]')).filter(c=>c.despachado);
-  }
-  if(fecha) list=list.filter(c=>(c.despachadoFecha||c.fecha)===fecha);
-  if(document.getElementById('desp-solo-pend')?.checked) list=list.filter(c=>!c.entregado);
-  list.sort((a,b)=>((b.despachadoFecha||b.fecha||'')+(b.horaDespacho||'')).localeCompare((a.despachadoFecha||a.fecha||'')+(a.horaDespacho||'')));
-  despAll=list; despShown=0;
-  tb.innerHTML='';
-  if(!despAll.length){ tb.innerHTML='<tr class="empty-row"><td colspan="12">Sin despachos registrados</td></tr>'; return; }
-  do{ renderDespPage(); }while(despShown<prevShown && despShown<despAll.length);
+// ── Arranque y escucha en vivo ──
+function panelStop(){ if(unsubWin) unsubWin(); if(unsubDesp) unsubDesp(); unsubWin=unsubDesp=null; }
+function panelStart(){
+  panelDia=today();
+  const mf=document.getElementById('man-fecha'), man=addDays(panelDia,1);
+  mf.value=man; mf.min=man; mf.max=addDays(panelDia,7);
+  ['pend','hoy','man','desp'].forEach(s=>{ document.getElementById('g-'+s).innerHTML='<thead>'+gHead(s)+'</thead>'; });
+  despLimit=DESP_PAGE; winOk=despOk=false; WIN=[]; DESP=[];
   if(!despScrollBound){
-    box.addEventListener('scroll',()=>{
-      if(box.scrollTop+box.clientHeight>box.scrollHeight-80) renderDespPage();
-    });
+    const box=document.getElementById('desp-history');
+    box.addEventListener('scroll',()=>{ if(box.scrollTop+box.clientHeight>box.scrollHeight-80&&despLimit<despTotal){ despLimit+=DESP_PAGE; gRender(); } });
     despScrollBound=true;
   }
-  box.scrollTop=prevScroll;
+  setDateLabels();
+  panelListen(); gRender();
+  VENTAS_NUEVAS=[]; renderVentasBanner();
+  revisarVentas(false);
+}
+function panelListen(){
+  panelStop(); if(!db) return;
+  const err=e=>{ console.warn(e); toast('No se pudo leer la base de datos: '+e.message,'error'); };
+  const ord=(a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||(a.createdAt||'').localeCompare(b.createdAt||'');
+  const lista=s=>s.docs.map(d=>({id:d.id,...d.data()})).sort(ord);
+  // Ventana: 14 días atrás (pendientes) a 7 adelante (planeación)
+  unsubWin=col().where('fecha','>=',addDays(panelDia,-14)).where('fecha','<=',addDays(panelDia,7))
+    .onSnapshot(s=>{ WIN=lista(s); winOk=true; gRender(); },err);
+  unsubDesp=col().where('despachado','==',true)
+    .onSnapshot(s=>{ DESP=lista(s); despOk=true; gRender(); },err);
+}
+function onManFecha(){ const mf=document.getElementById('man-fecha'); if(!mf.value) mf.value=addDays(today(),1); mf.blur(); gRender(); revisarVentas(false); }
+function despFiltro(){ despLimit=DESP_PAGE; document.getElementById('desp-history').scrollTop=0; gRender(); }
+
+async function panelActualizar(){
+  if(!puedeEditar()){ loadCat().then(gRender); toast('El panel ya está al día: se actualiza solo','success'); return; }
+  showLoad('Leyendo programa de ventas...');
+  try{ await loadCat(); }catch(e){}
+  const r=await revisarVentas(true,null,true);
+  hideLoad(); gRender();
+  if(!r.ok) return;
+  const partes=[];
+  if(r.imp) partes.push(`${r.imp} camión${r.imp>1?'es':''} nuevo${r.imp>1?'s':''}`);
+  if(r.auto) partes.push(`${r.auto} actualizado${r.auto>1?'s':''}`);
+  if(r.mov) partes.push(`${r.mov} movido${r.mov>1?'s':''} de fecha`);
+  toast(partes.length?'Ventas: '+partes.join(', '):'Sin cambios en ventas','success');
 }
 
-function despRow(c){
-  const ords=c.ordenes||[{}];
-  const o0=ords[0]||{};
-  const prods=ords.flatMap(o=>(o.productos||[]).filter(p=>p.producto));
-  const tar=prods.reduce((s,p)=>s+(Number(p.tarimas)||0),0);
-  const masCli=ords.length>1?` <span style="color:var(--text3);font-weight:400">+${ords.length-1}</span>`:'';
-  const prodTxt=prods.length?esc(prods[0].producto)+(prods.length>1?` <span style="color:var(--text3)">+${prods.length-1}</span>`:''):'–';
-  const prodTitle=esc(prods.map(p=>p.producto+' ('+(p.tarimas||0)+')').join(', '));
-  const ent=c.entregado
-    ?`<button class="btn-entregado done" onclick="toggleEntregado('${c.id}')" title="Entregado ${fmtEntrega(c.entregadoFecha)} ${esc(c.entregadoHora||'')} · marcado por ${esc(c.entregadoPor||'')}">✓ Entregado</button>`
-    :`<button class="btn-entregado" onclick="toggleEntregado('${c.id}')">☐ Entregado</button>`;
-  return `<tr id="desp-${c.id}">
-    <td class="mono" style="white-space:nowrap">${fmtCorta(c.despachadoFecha||c.fecha)} ${esc(c.horaDespacho||'')}</td>
-    <td class="desp-strong">${esc(o0.cliente||'–')}${masCli}</td>
-    <td class="mono">${esc(ords.map(o=>o.qt).filter(Boolean).join(', ')||'–')}</td>
-    <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${prodTitle}">${prodTxt}</td>
-    <td class="mono">${tar||'–'}</td>
-    <td>${esc(o0.destino||'–')}</td>
-    <td class="mono" style="white-space:nowrap">${fmtEntrega(o0.fechaEntrega)}</td>
-    <td>${esc(c.transportista||'–')}</td>
-    <td class="mono">${esc(c.ecoBox||'–')}</td>
-    <td class="mono">${esc(c.ecoTruck||'–')}</td>
-    <td><span class="status-pill ${c.cruceListo?'status-cruzado':'status-cruce-pendiente'}">${c.cruceListo?(c.horaCruce||'Cruzado'):'Pendiente'}</span></td>
-    <td>${ent}</td>
-  </tr>`;
+// ── Edición de celdas ──
+async function gUpd(id,u){
+  if(!puedeEditar()){ toast('Tu usuario es de solo lectura','error'); gRender(); return false; }
+  try{ await col().doc(id).update(u); return true; }
+  catch(e){ toast('No se pudo guardar: '+e.message,'error'); gRender(); return false; }
 }
-
-function renderDespPage(){
-  const tb=document.getElementById('desp-tbody');
-  const end=document.getElementById('desp-end');
-  if(end) end.remove();
-  const next=despAll.slice(despShown,despShown+DESP_PAGE);
-  tb.insertAdjacentHTML('beforeend',next.map(despRow).join(''));
-  despShown+=next.length;
-  if(despShown>=despAll.length){
-    tb.insertAdjacentHTML('beforeend','<tr class="empty-row" id="desp-end"><td colspan="12">— fin del historial —</td></tr>');
+function gToggle(sec,id){ const k=sec+':'+id; if(GOPEN.has(k)) GOPEN.delete(k); else GOPEN.add(k); gRender(); }
+function gSet(id,campo,el){ el.blur(); gUpd(id,{[campo]:String(el.value||'').trim()}); }
+function gSetHora(id,campo,el){ gUpd(id,{[campo]:el.value||''}); }
+function gEstatus(id,el){ el.blur(); const v=el.value; gUpd(id,{estatusCarga:v,horaCargado:v==='Cargado'?hhmm():''}); }
+async function gToggleFlag(id,kind){
+  const c=TRK[id]; if(!c) return;
+  const T=TOGS[kind]; let u;
+  if(c[T.flag]){
+    if(!confirm(T.q)) return;
+    u={[T.flag]:false,[T.hora]:''}; if(kind==='desp') u.despachadoFecha='';
+  } else {
+    u={[T.flag]:true,[T.hora]:hhmm()}; if(kind==='desp') u.despachadoFecha=today();
   }
+  await gUpd(id,u);
 }
-
-async function toggleEntregado(id){
-  const c=despAll.find(x=>x.id===id); if(!c) return;
-  let upd;
+async function gEntregado(id){
+  const c=TRK[id]; if(!c) return;
+  let u;
   if(c.entregado){
     if(!confirm('¿Quitar la marca de "Entregado" de este camión?')) return;
-    upd={entregado:false,entregadoFecha:'',entregadoHora:'',entregadoPor:''};
-  } else {
-    upd={entregado:true,entregadoFecha:today(),entregadoHora:nowTime(),entregadoPor:authUser?.email||''};
+    u={entregado:false,entregadoFecha:'',entregadoHora:'',entregadoPor:''};
+  } else u={entregado:true,entregadoFecha:today(),entregadoHora:hhmm(),entregadoPor:miEmail()};
+  if(await gUpd(id,u)) toast(u.entregado?'Marcado como entregado ✓':'Marca de entregado quitada',u.entregado?'success':undefined);
+}
+function gSetFecha(id,el){ if(!el.value) return; el.blur(); gUpd(id,{fecha:el.value}); }
+async function gJuntar(id,sel){
+  const a=TRK[id], b=TRK[sel.value]; sel.blur();
+  if(!a||!b){ sel.value=''; return; }
+  const ob=ordsDe(b)[0]||{};
+  if(!confirm(`¿Juntar ${ob.cliente||'el camión'} (SO ${ob.qt||'–'}) en este mismo camión? Quedará un solo renglón.`)){ sel.value=''; return; }
+  const ords=[...(a.ordenes||[]),...(b.ordenes||[])];
+  const u={ordenes:ords,ventasKeys:ords.map(o=>o.ventasKey).filter(Boolean)};
+  if(!a.transportista&&b.transportista) u.transportista=b.transportista;
+  if(await gUpd(id,u)){
+    try{ await col().doc(b.id).delete(); toast('Camiones juntados','success'); }
+    catch(e){ toast('No se pudo quitar el otro renglón: '+e.message,'error'); }
   }
+}
+async function gEliminar(id){
+  const c=TRK[id]; if(!c) return;
+  if(esDeVentas(c)){
+    if(!confirm('¿Quitar este camión del panel?\n\nViene del programa de ventas: quedará oculto y Actualizar no lo volverá a traer.')) return;
+    if(await gUpd(id,{eliminado:true,eliminadoPor:miEmail(),eliminadoAt:new Date().toISOString()})) toast('Camión quitado del panel');
+  } else {
+    if(!confirm('¿Eliminar este camión manual?')) return;
+    if(!puedeEditar()){ toast('Tu usuario es de solo lectura','error'); return; }
+    try{ await col().doc(id).delete(); toast('Camión eliminado'); }catch(e){ toast('No se pudo eliminar: '+e.message,'error'); }
+  }
+}
+
+// ── Camión manual ──
+function abrirManual(){
+  const hoy=today(), man=manFecha();
+  const lbl=f=>{ const d=new Date(f+'T12:00:00'); return DIAS_CORTOS[d.getDay()]+' '+fmtCorta(f); };
+  document.getElementById('manual-fechas').innerHTML=
+    `<button onclick="crearManual('${hoy}')">Hoy<span>${lbl(hoy)}</span></button>`+
+    `<button onclick="crearManual('${man}')">${man===addDays(hoy,1)?'Mañana':'Día planeado'}<span>${lbl(man)}</span></button>`;
+  document.getElementById('manual-modal').classList.remove('hidden');
+}
+function cerrarManual(){ document.getElementById('manual-modal').classList.add('hidden'); }
+async function crearManual(fecha){
+  cerrarManual();
+  if(!puedeEditar()){ toast('Tu usuario es de solo lectura','error'); return; }
   try{
-    if(db) await db.collection('programas').doc(id).update(upd);
-    Object.assign(c,upd);
-    const tr=document.getElementById('desp-'+id);
-    if(document.getElementById('desp-solo-pend')?.checked && c.entregado){ if(tr) tr.remove(); }
-    else if(tr) tr.outerHTML=despRow(c);
-    toast(c.entregado?'Marcado como entregado ✓':'Marca de entregado quitada',c.entregado?'success':undefined);
-    const k=document.getElementById('k-entregados'); if(k&&role==='gerente') loadDashboard();
+    const ref=col().doc();
+    GOPEN.add((fecha===today()?'hoy':'man')+':'+ref.id);
+    await ref.set({fecha,ordenes:[{qt:'',cliente:'',productos:[{producto:'',tarimas:''}],destino:'',fechaEntrega:''}],origen:'manual',
+      transportista:'',ecoBox:'',rampa:'',estatusCarga:'En espera',horaCargado:'',
+      ecoTruck:'',facturado:false,facturadoAt:'',despachado:false,horaDespacho:'',
+      cruceListo:false,horaCruce:'',createdAt:new Date().toISOString()});
+    toast('Camión manual agregado: captura sus datos','success');
+  }catch(e){ toast('No se pudo agregar: '+e.message,'error'); }
+}
+
+// ── Usuarios (quién puede editar) ──
+function abrirUsuarios(){
+  if(!esAdmin()) return;
+  document.getElementById('usr-lista').value=(USR.editores||[]).join('\n');
+  document.getElementById('usr-nota').innerHTML=`<strong>Administradores</strong> (siempre pueden editar y cambiar esta lista): ${ADMINS.map(esc).join(', ')}`;
+  document.getElementById('usr-modal').classList.remove('hidden');
+}
+function cerrarUsuarios(){ document.getElementById('usr-modal').classList.add('hidden'); }
+async function guardarUsuarios(){
+  if(!esAdmin()) return;
+  const lista=[...new Set(document.getElementById('usr-lista').value.split(/[\s,;]+/).map(e=>e.toLowerCase().trim()).filter(Boolean))];
+  const mal=lista.filter(e=>!emailAllowed(e));
+  if(mal.length){ toast('Correo no válido o fuera de la empresa: '+mal[0],'error'); return; }
+  try{
+    await db.collection('config').doc('usuarios').set({editores:lista,actualizadoPor:miEmail(),actualizadoAt:new Date().toISOString()});
+    cerrarUsuarios(); toast(`Lista guardada: ${lista.length} editor${lista.length===1?'':'es'}`,'success');
   }catch(e){ toast('No se pudo guardar: '+e.message,'error'); }
+}
+
+// ── Exportar lo que se ve en el panel (un renglón por producto) ──
+function exportCSV(){
+  const hoy=today(), man=manFecha(), vivos=WIN.filter(c=>!c.eliminado);
+  const secs=[['Pendientes',vivos.filter(c=>c.fecha<hoy&&!c.despachado)],['Hoy',vivos.filter(c=>c.fecha===hoy)],['Mañana',vivos.filter(c=>c.fecha===man)]];
+  const rows=[['Sección','Fecha carga','Cliente','SO','Producto','Tarimas','Destino','Entrega','Transportista','Eco Caja','Eco Truck','Rampa','Estatus Carga','Hora Cargado','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce']];
+  secs.forEach(([n,l])=>l.forEach(c=>ordsDe(c).forEach(o=>((o.productos&&o.productos.length)?o.productos:[{}]).forEach(p=>{
+    rows.push([n,c.fecha||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.rampa||'',
+      c.estatusCarga||'En espera',c.horaCargado||'',c.facturado?'Sí':'No',c.facturadoAt||'',c.despachado?'Sí':'No',c.horaDespacho||'',c.cruceListo?'Sí':'No',c.horaCruce||'']);
+  }))));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='HTM_Shipping_'+today()+'.csv'; a.click();
+  toast('CSV exportado','success');
 }
 
 async function exportDespachadosHistorial(){
   if(!db){ toast('Requiere conexión a Firebase','error'); return; }
   showLoad('Preparando historial...');
   try{
-    const snap=await db.collection('programas').where('despachado','==',true).get();
+    const snap=await col().where('despachado','==',true).get();
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
     const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Tarimas','Destino','Fecha entrega (programada)','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce','Entregado','Fecha entregado','Hora entregado','Marcado por'];
     const rows=[header];
@@ -1565,22 +1883,6 @@ async function exportDespachadosHistorial(){
   hideLoad();
 }
 
-function exportCSV(){
-  const header=['Fecha','Cliente','SO','Producto','Tarimas','Destino','Entrega','Transportista','Eco Caja','Eco Truck','Estatus Carga','Facturado','Despacho','Cruce'];
-  const rows=[header];
-  ['tbody-ayer','tbody-hoy'].forEach(id=>{
-    document.querySelectorAll('#'+id+' tr:not(.empty-row)').forEach(tr=>{
-      const cells=[...tr.querySelectorAll('td')].map(td=>(td.querySelector('.status-pill')?.textContent||td.textContent).trim());
-      if(cells.length>1)rows.push(cells);
-    });
-  });
-  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='HTM_Shipping_'+today()+'.csv'; a.click();
-  toast('CSV exportado','success');
-}
-
 // ── UI ──
 function showLoad(t){ document.getElementById('loading-text').textContent=t||'Cargando...'; document.getElementById('loading').style.display='flex'; }
 function hideLoad(){ document.getElementById('loading').style.display='none'; }
@@ -1593,11 +1895,15 @@ function toast(msg,type){
 
 document.addEventListener('DOMContentLoaded',()=>{
   initFB(); hideLoad(); setDateLabels();
-  setInterval(()=>{ if(role==='gerente'){loadDashboard();loadDespachados();} },30000);
-  setInterval(()=>{ if(role==='supervisor') revisarVentas(false); },VENTAS_POLL_MS);
+  if(PRUEBA) document.body.classList.add('modo-prueba');
+  // El panel se actualiza solo (en vivo). Aquí solo se vigila el cambio de día y los cambios en la hoja de ventas.
+  setInterval(()=>{ if(role==='gerente'&&today()!==panelDia) panelStart(); },60000);
+  setInterval(()=>{ if(role) revisarVentas(false); },VENTAS_POLL_MS);
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'&&role==='supervisor'&&(!VENTAS.at||Date.now()-VENTAS.at>2*60*1000)) revisarVentas(false);
+    if(document.visibilityState==='visible'&&role&&(!VENTAS.at||Date.now()-VENTAS.at>2*60*1000)) revisarVentas(false);
   });
+  // Si llegó un cambio mientras alguien escribía en una celda, se pinta al salir de ella.
+  document.addEventListener('focusout',()=>{ if(GDIRTY){ GDIRTY=false; setTimeout(gRender,0); } });
 });
 
 if ('serviceWorker' in navigator) {

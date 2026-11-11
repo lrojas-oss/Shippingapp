@@ -1,5 +1,8 @@
 rules_version = '2';
 
+// OJO: estas reglas aplican a TODO el proyecto de Firebase (app en uso y versión de prueba).
+// Publicarlas solo cuando el panel nuevo ya esté en producción y la lista de editores esté capturada
+// (botón "👥 Usuarios" del panel). Antes de eso, quien no esté en la lista dejaría de poder guardar.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -8,9 +11,30 @@ service cloud.firestore {
         && request.auth.token.email_verified == true
         && request.auth.token.email.matches('.*@(harvesttekmex[.]com|sfcos[.]com)$');
     }
+    // Misma lista que ADMINS en index.html
+    function isAdmin() {
+      return isCompanyUser() && request.auth.token.email in ['lrojas@harvesttekmex.com'];
+    }
+    function isEditor() {
+      return isAdmin() || (isCompanyUser()
+        && exists(/databases/$(database)/documents/config/usuarios)
+        && request.auth.token.email in get(/databases/$(database)/documents/config/usuarios).data.editores);
+    }
 
+    // Todos los de la empresa pueden ver
     match /{document=**} {
-      allow read, write: if isCompanyUser();
+      allow read: if isCompanyUser();
+    }
+    // Solo editores capturan en el programa (real y de prueba)
+    match /programas/{id} {
+      allow write: if isEditor();
+    }
+    match /programas_prueba/{id} {
+      allow write: if isEditor();
+    }
+    // Solo administradores cambian la lista de usuarios
+    match /config/{id} {
+      allow write: if isAdmin();
     }
   }
 }
