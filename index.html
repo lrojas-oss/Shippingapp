@@ -253,7 +253,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid.dash-table>thead>tr>th.lock::after{content:none;}
 .grid.dash-table .st1{width:104px;min-width:104px;max-width:104px;}
 .grid.dash-table .st2{left:104px;min-width:60px;}
-.grid.dash-table .prod-btn{max-width:112px;}
+.grid.dash-table .prod-btn{max-width:clamp(112px,calc(100vw - 1060px),520px);}
+.grid.desp-table .prod-btn{max-width:clamp(112px,calc(100vw - 1040px),520px);}
+/* Cada columna mide lo que ocupa su contenido (como hoja de cálculo); la tabla no se estira a todo lo ancho. */
+.grid.dash-table{width:auto;}
+.dash-table-wrap:has(>.grid),.desp-history{width:fit-content;max-width:100%;}
+@media(min-width:1400px){
+  .grid.dash-table .st1{width:150px;min-width:150px;max-width:150px;}
+  .grid.dash-table .st2{left:150px;}
+}
 .grid.dash-table .tgc{padding:2px 6px;}
 .grid.dash-table .cell-in{width:58px;}
 .grid.dash-table .cell-in.corto{width:40px;}
@@ -1545,9 +1553,9 @@ const GLOCK=new Set(['cliente','so','fecha','despf','producto','tarimas','destin
 // En Despachados el camión ya salió: transportista y cajas quedan bloqueados; solo se marcan facturado, despacho, cruce y entrega.
 const GLOCK_DESP=new Set(['transp','caja','truck']);
 function gLock(k,sec){ return GLOCK.has(k)||(sec==='desp'&&GLOCK_DESP.has(k)); }
-function gCls(k,sec){ return (k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
+function gCls(k,sec){ return (k==='producto'?'c-prod ':'')+(k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
 const GLBL_CORTO={despf:'Fecha',tarimas:'Tar.',transp:'Transp.',caja:'Caja',truck:'Truck',estatus:'Estatus',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
-function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}" title="${GLBL[k]}">${GLBL_CORTO[k]||GLBL[k]}</th>`).join('')+'</tr>'; }
+function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}" data-k="${k}" title="${GLBL[k]}">${GLBL_CORTO[k]||GLBL[k]}</th>`).join('')+'</tr>'; }
 
 const TOGS={
   fac:{flag:'facturado',hora:'facturadoAt',txt:'Facturado',on:'status-si',off:'status-pendiente',q:'¿Quitar la marca de "Facturado y reportado"?'},
@@ -1701,6 +1709,7 @@ function gRender(){
   const vivos=WIN.filter(c=>!c.eliminado);
   const pend=vivos.filter(c=>c.fecha<hoy&&!c.despachado), hoyL=vivos.filter(c=>c.fecha===hoy), manL=vivos.filter(c=>c.fecha===man);
   gFill('pend',pend,ed,winOk); gFill('hoy',hoyL,ed,winOk); gFill('man',manL,ed,winOk);
+  gAlinear();
   [['n-pend',pend],['n-hoy',hoyL],['n-man',manL]].forEach(([i,l])=>{ const e=document.getElementById(i); if(e) e.textContent=winOk?l.length:''; });
 
   const fFecha=document.getElementById('desp-fecha').value;
@@ -1721,6 +1730,19 @@ function gRender(){
   set('k-entregados',base.filter(c=>c.entregado).length);
   renderTransportDetail(base);
 }
+
+// Pendientes, Hoy y Mañana comparten columnas: se les da el mismo ancho por columna para que se lean como una sola hoja.
+function gAlinear(){
+  const ths=[...document.querySelectorAll('#g-pend thead th,#g-hoy thead th,#g-man thead th')];
+  ths.forEach(th=>th.style.minWidth='');
+  const max={};
+  ths.forEach(th=>{ const k=th.dataset.k, w=th.getBoundingClientRect().width; if(!max[k]||w>max[k]) max[k]=w; });
+  ths.forEach(th=>{ const k=th.dataset.k; if(k!=='cliente') th.style.minWidth=Math.ceil(max[k])+'px'; });
+  // En pantallas angostas alinear haría que la tabla de hoy ya no quepa: ahí cada sección conserva su ancho mínimo.
+  const w=document.getElementById('g-hoy')?.parentElement;
+  if(w&&w.scrollWidth>w.clientWidth+1) ths.forEach(th=>th.style.minWidth='');
+}
+window.addEventListener('resize',()=>{ if(role==='gerente') gAlinear(); });
 
 function renderTransportDetail(all){
   const groups={};
