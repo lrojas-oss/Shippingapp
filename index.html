@@ -255,9 +255,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid.dash-table .st2{left:104px;min-width:60px;}
 .grid.dash-table .prod-btn{max-width:clamp(112px,calc(100vw - 1060px),520px);}
 .grid.desp-table .prod-btn{max-width:clamp(112px,calc(100vw - 1040px),520px);}
-/* Cada columna mide lo que ocupa su contenido (como hoja de cálculo); la tabla no se estira a todo lo ancho. */
-.grid.dash-table{width:auto;}
-.dash-table-wrap:has(>.grid),.desp-history{width:fit-content;max-width:100%;}
+/* Las tablas ocupan todo el ancho de la página; Producto tiene ancho suficiente para leer el nombre completo. */
 @media(min-width:1400px){
   .grid.dash-table .st1{width:150px;min-width:150px;max-width:150px;}
   .grid.dash-table .st2{left:150px;}
@@ -1733,14 +1731,18 @@ function gRender(){
 
 // Pendientes, Hoy y Mañana comparten columnas: se les da el mismo ancho por columna para que se lean como una sola hoja.
 function gAlinear(){
-  const ths=[...document.querySelectorAll('#g-pend thead th,#g-hoy thead th,#g-man thead th')];
-  ths.forEach(th=>th.style.minWidth='');
+  const tablas=['g-pend','g-hoy','g-man'].map(id=>document.getElementById(id)).filter(Boolean);
+  const ths=tablas.flatMap(t=>[...t.querySelectorAll('thead th')]);
+  // 1) ancho natural de cada columna (tabla sin estirar)
+  tablas.forEach(t=>t.style.width='auto'); ths.forEach(th=>th.style.width='');
   const max={};
   ths.forEach(th=>{ const k=th.dataset.k, w=th.getBoundingClientRect().width; if(!max[k]||w>max[k]) max[k]=w; });
-  ths.forEach(th=>{ const k=th.dataset.k; if(k!=='cliente') th.style.minWidth=Math.ceil(max[k])+'px'; });
+  // 2) mismo ancho base en todas; al estirarse a la página el sobrante se reparte igual en cada tabla
+  ths.forEach(th=>{ const k=th.dataset.k; if(k!=='cliente') th.style.width=Math.ceil(max[k])+'px'; });
+  tablas.forEach(t=>t.style.width='');
   // En pantallas angostas alinear haría que la tabla de hoy ya no quepa: ahí cada sección conserva su ancho mínimo.
   const w=document.getElementById('g-hoy')?.parentElement;
-  if(w&&w.scrollWidth>w.clientWidth+1) ths.forEach(th=>th.style.minWidth='');
+  if(w&&w.scrollWidth>w.clientWidth+1) ths.forEach(th=>th.style.width='');
 }
 window.addEventListener('resize',()=>{ if(role==='gerente') gAlinear(); });
 
