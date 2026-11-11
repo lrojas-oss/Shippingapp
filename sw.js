@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ht-shipping-v6';
+const CACHE_NAME = 'ht-shipping-v7';
 const ASSETS = [
   './',
   './index.html',
