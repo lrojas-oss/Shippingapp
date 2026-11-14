@@ -1228,6 +1228,8 @@ function fmtCorta(s){ if(!s)return'–'; const p=s.split('-'); return p[2]+'/'+p
 function ventasUrl(){ return (CFG.ventasUrl||VENTAS_URL_DEFAULT||'').trim(); }
 // Llave de ventas de una orden: la vinculada, o la de su SO si se capturó a mano (evita duplicar)
 function llaveOrden(o){ if(o.ventasKey) return o.ventasKey; const q=String(o.qt||'').trim(); return /^\d+$/.test(q)?'SO:'+q:null; }
+// SO pendiente (vacío o con texto "PEND…", p. ej. "SO PENDIENTE 1"): no se agrega a ningún programa hasta que ventas le asigne número.
+function esPendienteVentas(v){ return !!v.pendiente||/pend/i.test(String(v.so||'')); }
 function esEspera(c){ return !c.estatusCarga||c.estatusCarga==='En espera'; }
 
 function snapVentas(v){
@@ -1313,7 +1315,7 @@ function planSync(trucks,ventas,fecha,opts){
     if(Object.keys(update).length) acciones.push({id:c.id,update,auto:tocado,movido:!!update.fecha});
   });
   const fechas=new Set([].concat(fecha));
-  const nuevasSO=ventas.ordenes.filter(v=>fechas.has(v.cosecha)&&!importadas.has(v.key)&&!reusadas.has(v.key));
+  const nuevasSO=ventas.ordenes.filter(v=>fechas.has(v.cosecha)&&!esPendienteVentas(v)&&!importadas.has(v.key)&&!reusadas.has(v.key));
   return {acciones,nuevasSO};
 }
 
@@ -1375,7 +1377,7 @@ async function revisarVentas(manual,forzar,importar){
 
 // Crea un camión por cada SO nuevo. El id sale del SO, así dos personas que actualizan a la vez no duplican camiones.
 async function importarNuevas(lista){
-  const orden=[...lista].sort((a,b)=>a.cosecha.localeCompare(b.cosecha)||(a.prioridad||'zz').localeCompare(b.prioridad||'zz')||a.cliente.localeCompare(b.cliente));
+  const orden=[...lista].filter(v=>!esPendienteVentas(v)).sort((a,b)=>a.cosecha.localeCompare(b.cosecha)||(a.prioridad||'zz').localeCompare(b.prioridad||'zz')||a.cliente.localeCompare(b.cliente));
   const base=Date.now(); let n=0;
   for(let i=0;i<orden.length;i++){
     const v=orden[i], o=ordenDesdeVentas(v);
@@ -1464,7 +1466,7 @@ function cerrarImportar(){ document.getElementById('ventas-modal').classList.add
 
 function renderImportar(){
   const fecha=document.getElementById('sup-fecha').value;
-  const delDia=VENTAS.ordenes.filter(v=>v.cosecha===fecha)
+  const delDia=VENTAS.ordenes.filter(v=>v.cosecha===fecha&&!esPendienteVentas(v))
     .sort((a,b)=>(a.prioridad||'zz').localeCompare(b.prioridad||'zz')||a.cliente.localeCompare(b.cliente));
   const enApp={};
   ventasWin.forEach(c=>(c.ordenes||[]).forEach(o=>{ const k=llaveOrden(o); if(k) enApp[k]=c; }));
