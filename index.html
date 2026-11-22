@@ -263,7 +263,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid.dash-table .tgc{padding:2px 6px;}
 .grid.dash-table .cell-in{width:58px;}
 .grid.dash-table .cell-in.corto{width:40px;}
-.grid.dash-table .cell-in.ancho{width:110px;}
 .grid.dash-table .cell-sel{min-width:84px;max-width:110px;}
 .grid.dash-table>tbody>tr>td{font-size:12px;}
 .g-pop{position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:10px 12px;font-size:12px;color:var(--text2);min-width:200px;}
@@ -290,8 +289,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .g-box{position:sticky;left:0;width:min(880px,calc(100vw - 2.6rem - 2px));padding:12px 14px;box-sizing:border-box;}
 .cell-in{width:80px;height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 7px;font-family:var(--mono);font-size:12px;color:var(--text);}
 .cell-in.corto{width:52px;}
-.cell-in.ancho{width:140px;font-family:var(--font);}
-.coment-txt{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;}
+.coment-flag{display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--red);font-size:11px;}
 .cell-sel{height:34px;min-width:112px;max-width:150px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 6px;font-family:var(--font);font-size:12px;color:var(--text);}
 .cell-sel.vacio{color:var(--text3);border-style:dashed;border-color:var(--border2);}
 .cell-time{height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:3px 4px;font-family:var(--mono);font-size:12px;margin-left:5px;color:var(--text);}
@@ -313,6 +311,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid .g-lines td{padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg2);}
 .g-acc{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--text2);}
 .g-acc select,.g-acc input[type="date"],.sec-date{height:32px;border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-family:var(--font);font-size:12px;background:#fff;color:var(--text);}
+.g-acc .coment-in{flex:1;min-width:240px;height:32px;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-family:var(--font);font-size:12px;background:#fff;color:var(--text);}
 .sec-date{text-transform:none;letter-spacing:0;font-weight:400;}
 .sec-n{font-family:var(--mono);font-weight:500;color:var(--text2);background:var(--bg3);border-radius:10px;padding:0 7px;letter-spacing:0;}
 .fecha-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -1591,10 +1590,9 @@ function gCell(c,k,sec,ed){
       return `<button class="prod-btn" onclick="gToggle('${sec}','${id}')" title="Ver todos los productos y el detalle del camión"><span class="chev${open?' open':''}">▸</span><span class="pn">${esc(prods[0]?.producto||'(sin producto)')}</span>${prods.length>1?`<span class="mas">+${prods.length-1}</span>`:''}</button>`;
     }
     case 'comentario': {
-      // ponytail: un camión casi siempre es una sola orden; el comentario se guarda en la primera. Si en el futuro se junta con frecuencia y los comentarios difieren por orden, mover a edición por orden en el detalle.
+      // Se edita en el detalle del camión (junto a "Eliminar camión"); aquí solo se muestra, discreto, si hay algo que mostrar.
       const txt=ords.map(o=>o.comentario).filter(Boolean).join(' · ');
-      if(!ed) return txt?`<span class="coment-txt" title="${esc(txt)}">${esc(txt)}</span>`:'–';
-      return `<input class="cell-in ancho" type="text" value="${esc(ords[0]?.comentario||'')}" placeholder="Sin comentarios" title="${esc(txt)}" onchange="updOF('${id}',0,'comentario',this.value)"/>`;
+      return txt?`<span class="coment-flag" title="${esc(txt)}">${esc(txt)}</span>`:'';
     }
     case 'tarimas': { const t=ords.reduce((s,o)=>s+(o.productos||[]).reduce((a,p)=>a+(Number(p.tarimas)||0),0),0); return t||'–'; }
     case 'destino': return esc([...new Set(ords.map(o=>o.destino).filter(Boolean))].join(', ')||'–');
@@ -1647,6 +1645,7 @@ function gDetail(c,sec,ed){
       if(cands.length) acc+=`<select onchange="gJuntar('${id}',this)"><option value="">Juntar con otro camión…</option>${cands.map(x=>{const o=ordsDe(x)[0];return `<option value="${x.id}">${esc(o.cliente||'–')} · SO ${esc(ordsDe(x).map(y=>y.qt).filter(Boolean).join(', ')||'–')}</option>`;}).join('')}</select>`;
     }
     acc+=`<button class="btn btn-danger btn-sm" onclick="gEliminar('${id}')">Eliminar camión</button>`;
+    acc+=`<input type="text" class="coment-in" placeholder="💬 Agregar comentario (aduana, chofer, etc.)" value="${esc(ords[0]?.comentario||'')}" onchange="updOF('${id}',0,'comentario',this.value)"/>`;
     h+=`<div class="g-acc">${acc}</div>`;
   }
   return h;
