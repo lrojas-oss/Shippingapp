@@ -278,6 +278,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid>tbody>tr>td{padding:5px 8px;height:44px;}
 .grid>tbody>tr:last-child>td{border-bottom:1px solid var(--border);}
 .grid>tbody>tr>td.lock{background:#faf9f6;color:var(--text2);}
+.grid>tbody>tr>td.coment-cell,.grid>thead>tr>th.coment-cell{background:#faf9f6;}
 .grid>thead>tr>th.lock::after{content:' 🔒';font-size:9px;opacity:.55;}
 .grid .st1{position:sticky;left:0;z-index:2;width:128px;min-width:128px;max-width:128px;overflow:hidden;text-overflow:ellipsis;}
 .grid .st2{position:sticky;left:128px;z-index:2;min-width:70px;box-shadow:1px 0 0 var(--border2);}
@@ -1555,7 +1556,7 @@ const GLOCK=new Set(['cliente','so','fecha','despf','producto','tarimas','destin
 // En Despachados el camión ya salió: transportista y cajas quedan bloqueados; solo se marcan facturado, despacho, cruce y entrega.
 const GLOCK_DESP=new Set(['transp','caja','truck']);
 function gLock(k,sec){ return GLOCK.has(k)||(sec==='desp'&&GLOCK_DESP.has(k)); }
-function gCls(k,sec){ return (k==='producto'?'c-prod ':'')+(k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
+function gCls(k,sec){ return (k==='producto'?'c-prod ':'')+(k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':(k==='comentario'?'coment-cell':''))+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
 const GLBL_CORTO={despf:'Fecha',tarimas:'Tar.',comentario:'Coment.',transp:'Transp.',caja:'Caja',truck:'Truck',estatus:'Estatus',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
 function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}" data-k="${k}" title="${GLBL[k]}">${GLBL_CORTO[k]||GLBL[k]}</th>`).join('')+'</tr>'; }
 
