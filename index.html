@@ -263,6 +263,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .grid.dash-table .tgc{padding:2px 6px;}
 .grid.dash-table .cell-in{width:58px;}
 .grid.dash-table .cell-in.corto{width:40px;}
+.grid.dash-table .cell-in.ancho{width:110px;}
 .grid.dash-table .cell-sel{min-width:84px;max-width:110px;}
 .grid.dash-table>tbody>tr>td{font-size:12px;}
 .g-pop{position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:10px 12px;font-size:12px;color:var(--text2);min-width:200px;}
@@ -289,6 +290,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .g-box{position:sticky;left:0;width:min(880px,calc(100vw - 2.6rem - 2px));padding:12px 14px;box-sizing:border-box;}
 .cell-in{width:80px;height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 7px;font-family:var(--mono);font-size:12px;color:var(--text);}
 .cell-in.corto{width:52px;}
+.cell-in.ancho{width:140px;font-family:var(--font);}
+.coment-txt{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;}
 .cell-sel{height:34px;min-width:112px;max-width:150px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:4px 6px;font-family:var(--font);font-size:12px;color:var(--text);}
 .cell-sel.vacio{color:var(--text3);border-style:dashed;border-color:var(--border2);}
 .cell-time{height:34px;border:1px solid var(--border);border-radius:5px;background:#fff;padding:3px 4px;font-family:var(--mono);font-size:12px;margin-left:5px;color:var(--text);}
@@ -1541,20 +1544,20 @@ function manFecha(){ return document.getElementById('man-fecha')?.value||addDays
 function ordsDe(c){ return (c.ordenes&&c.ordenes.length)?c.ordenes:[{}]; }
 function esDeVentas(c){ return (c.ordenes||[]).some(o=>o.ventasKey); }
 
-const GCOLS_BASE=['cliente','so','producto','tarimas','destino','entrega','transp','caja','truck','rampa','estatus','fac','desp','cruce'];
+const GCOLS_BASE=['cliente','so','producto','comentario','tarimas','destino','entrega','transp','caja','truck','rampa','estatus','fac','desp','cruce'];
 const GCOLS={
   pend:['cliente','so','fecha',...GCOLS_BASE.slice(2)],
   hoy:GCOLS_BASE, man:GCOLS_BASE,
-  desp:['cliente','so','despf','producto','tarimas','destino','entrega','transp','caja','truck','fac','desp','cruce','entregado']
+  desp:['cliente','so','despf','producto','comentario','tarimas','destino','entrega','transp','caja','truck','fac','desp','cruce','entregado']
 };
-const GLBL={cliente:'Cliente',so:'SO',fecha:'Carga',despf:'Despacho',producto:'Producto',tarimas:'Tarimas',destino:'Destino',entrega:'Entrega',
+const GLBL={cliente:'Cliente',so:'SO',fecha:'Carga',despf:'Despacho',producto:'Producto',comentario:'Comentario',tarimas:'Tarimas',destino:'Destino',entrega:'Entrega',
   transp:'Transportista',caja:'Eco Caja',truck:'Eco Truck',rampa:'Rampa',estatus:'Estatus Carga',fac:'Facturado',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
 const GLOCK=new Set(['cliente','so','fecha','despf','producto','tarimas','destino','entrega']);
 // En Despachados el camión ya salió: transportista y cajas quedan bloqueados; solo se marcan facturado, despacho, cruce y entrega.
 const GLOCK_DESP=new Set(['transp','caja','truck']);
 function gLock(k,sec){ return GLOCK.has(k)||(sec==='desp'&&GLOCK_DESP.has(k)); }
 function gCls(k,sec){ return (k==='producto'?'c-prod ':'')+(k==='cliente'?'st1 ':k==='so'?'st2 mono ':'')+(gLock(k,sec)?'lock':'')+(['fecha','despf','tarimas','entrega'].includes(k)?' mono':'')+(['estatus','fac','desp','cruce','entregado'].includes(k)?' tgc-cell':''); }
-const GLBL_CORTO={despf:'Fecha',tarimas:'Tar.',transp:'Transp.',caja:'Caja',truck:'Truck',estatus:'Estatus',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
+const GLBL_CORTO={despf:'Fecha',tarimas:'Tar.',comentario:'Coment.',transp:'Transp.',caja:'Caja',truck:'Truck',estatus:'Estatus',fac:'Factura',desp:'Despacho',cruce:'Cruce',entregado:'Entregado'};
 function gHead(sec){ return '<tr>'+GCOLS[sec].map(k=>`<th class="${gCls(k,sec)}" data-k="${k}" title="${GLBL[k]}">${GLBL_CORTO[k]||GLBL[k]}</th>`).join('')+'</tr>'; }
 
 const TOGS={
@@ -1586,6 +1589,12 @@ function gCell(c,k,sec,ed){
       const prods=ords.flatMap(o=>(o.productos||[]).filter(p=>p.producto));
       const open=GOPEN.has(sec+':'+id);
       return `<button class="prod-btn" onclick="gToggle('${sec}','${id}')" title="Ver todos los productos y el detalle del camión"><span class="chev${open?' open':''}">▸</span><span class="pn">${esc(prods[0]?.producto||'(sin producto)')}</span>${prods.length>1?`<span class="mas">+${prods.length-1}</span>`:''}</button>`;
+    }
+    case 'comentario': {
+      // ponytail: un camión casi siempre es una sola orden; el comentario se guarda en la primera. Si en el futuro se junta con frecuencia y los comentarios difieren por orden, mover a edición por orden en el detalle.
+      const txt=ords.map(o=>o.comentario).filter(Boolean).join(' · ');
+      if(!ed) return txt?`<span class="coment-txt" title="${esc(txt)}">${esc(txt)}</span>`:'–';
+      return `<input class="cell-in ancho" type="text" value="${esc(ords[0]?.comentario||'')}" placeholder="Sin comentarios" title="${esc(txt)}" onchange="updOF('${id}',0,'comentario',this.value)"/>`;
     }
     case 'tarimas': { const t=ords.reduce((s,o)=>s+(o.productos||[]).reduce((a,p)=>a+(Number(p.tarimas)||0),0),0); return t||'–'; }
     case 'destino': return esc([...new Set(ords.map(o=>o.destino).filter(Boolean))].join(', ')||'–');
@@ -1956,9 +1965,9 @@ async function guardarUsuarios(){
 function exportCSV(){
   const hoy=today(), man=manFecha(), vivos=WIN.filter(c=>!c.eliminado);
   const secs=[['Pendientes',vivos.filter(c=>c.fecha<hoy&&!c.despachado)],['Hoy',vivos.filter(c=>c.fecha===hoy)],['Mañana',vivos.filter(c=>c.fecha===man)]];
-  const rows=[['Sección','Fecha carga','Cliente','SO','Producto','Tarimas','Destino','Entrega','Transportista','Eco Caja','Eco Truck','Rampa','Estatus Carga','Hora Cargado','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce']];
+  const rows=[['Sección','Fecha carga','Cliente','SO','Producto','Comentario','Tarimas','Destino','Entrega','Transportista','Eco Caja','Eco Truck','Rampa','Estatus Carga','Hora Cargado','Facturado','Hora Facturado','Despachado','Hora Despacho','Cruce','Hora Cruce']];
   secs.forEach(([n,l])=>l.forEach(c=>ordsDe(c).forEach(o=>((o.productos&&o.productos.length)?o.productos:[{}]).forEach(p=>{
-    rows.push([n,c.fecha||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.rampa||'',
+    rows.push([n,c.fecha||'',o.cliente||'',o.qt||'',p.producto||'',o.comentario||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.rampa||'',
       c.estatusCarga||'En espera',c.horaCargado||'',c.facturado?'Sí':'No',c.facturadoAt||'',c.despachado?'Sí':'No',c.horaDespacho||'',c.cruceListo?'Sí':'No',c.horaCruce||'']);
   }))));
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -1974,12 +1983,12 @@ async function exportDespachadosHistorial(){
   try{
     const snap=await col().where('despachado','==',true).get();
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Tarimas','Destino','Fecha entrega (programada)','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce','Entregado','Fecha entregado','Hora entregado','Marcado por'];
+    const header=['Fecha despacho','Hora despacho','Cliente','SO','Producto','Comentario','Tarimas','Destino','Fecha entrega (programada)','Transportista','Eco Caja','Eco Truck','Cruce','Hora Cruce','Entregado','Fecha entregado','Hora entregado','Marcado por'];
     const rows=[header];
     all.sort((a,b)=>(a.despachadoFecha||a.fecha||'').localeCompare(b.despachadoFecha||b.fecha||'')).forEach(c=>{
       (c.ordenes||[{}]).forEach(o=>{
         (o.productos||[{}]).forEach(p=>{
-          rows.push([c.despachadoFecha||c.fecha||'',c.horaDespacho||'',o.cliente||'',o.qt||'',p.producto||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.cruceListo?'Sí':'No',c.horaCruce||'',c.entregado?'Sí':'No',c.entregadoFecha||'',c.entregadoHora||'',c.entregadoPor||'']);
+          rows.push([c.despachadoFecha||c.fecha||'',c.horaDespacho||'',o.cliente||'',o.qt||'',p.producto||'',o.comentario||'',p.tarimas||'',o.destino||'',o.fechaEntrega||'',c.transportista||'',c.ecoBox||'',c.ecoTruck||'',c.cruceListo?'Sí':'No',c.horaCruce||'',c.entregado?'Sí':'No',c.entregadoFecha||'',c.entregadoHora||'',c.entregadoPor||'']);
         });
       });
     });
