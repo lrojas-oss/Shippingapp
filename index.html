@@ -306,6 +306,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .prod-btn .chev{display:inline-block;color:var(--accent);transition:transform .15s;font-size:12px;margin-right:2px;}
 .prod-btn .chev.open{transform:rotate(90deg);}
 .mas{color:var(--green);font-weight:600;font-size:11px;background:var(--green-light);border-radius:10px;padding:0 6px;margin-left:2px;}
+/* Prioridad de despacho */
+.grid>tbody>tr.g-urgente>td{background:#fff4ed;}
+.grid>tbody>tr.g-urgente>td.lock,.grid>tbody>tr.g-urgente>td.coment-cell{background:#ffe9db;}
+.grid>tbody>tr.g-tarde>td{background:#fff1f1;}
+.grid>tbody>tr.g-tarde>td.lock,.grid>tbody>tr.g-tarde>td.coment-cell{background:#fde2e2;}
+.grid>tbody>tr.g-row.g-open.g-urgente>td{background:#ffe9db;}
+.grid>tbody>tr.g-row.g-open.g-tarde>td{background:#fde2e2;}
+.grid>tbody>tr.g-urgente>td.st1{box-shadow:inset 4px 0 0 #ea580c,1px 0 0 var(--border2);}
+.grid>tbody>tr.g-tarde>td.st1{box-shadow:inset 4px 0 0 #dc2626,1px 0 0 var(--border2);}
+.tag-urg{display:inline-block;font-size:10px;font-weight:700;border-radius:10px;padding:1px 7px;margin-left:5px;white-space:nowrap;letter-spacing:.02em;vertical-align:middle;}
+.tag-urg.urgente{background:#ea580c;color:#fff;}
+.tag-urg.tarde{background:#dc2626;color:#fff;animation:urgPulso 1.6s ease-in-out infinite;}
+@keyframes urgPulso{0%,100%{opacity:1;}50%{opacity:.55;}}
+.urg-box{border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:12px;line-height:1.5;}
+.urg-box.urgente{background:#fff4ed;color:#9a3412;border:1px solid #fdba74;}
+.urg-box.tarde{background:var(--red-bg);color:var(--red);border:1px solid #fca5a5;}
+.kpi-urg{cursor:pointer;}
+.kpi-urg.kpi-alerta{background:#fff4ed;border-color:#fdba74;}
+.kpi-urg.kpi-alerta .kpi-label,.kpi-urg.kpi-alerta .kpi-value{color:#c2410c;}
+.grid>tbody>tr.g-flash>td{animation:urgFlash 1.8s ease-out;}
+@keyframes urgFlash{0%,40%{background:#fed7aa;}100%{}}
 .tag-fuera{font-size:10px;font-weight:600;color:var(--red);background:var(--red-bg);border-radius:10px;padding:1px 6px;margin-left:4px;}
 .grid .g-lines{border-collapse:collapse;font-size:12px;margin-bottom:8px;background:var(--bg2);border:1px solid var(--border);}
 .grid .g-lines th{background:var(--bg3);padding:5px 10px;font-size:10px;border-bottom:1px solid var(--border);}
@@ -491,6 +512,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
   <div id="pan-banner" class="ventas-banner hidden"></div>
   <div class="kpi-grid">
+    <div class="kpi-card kpi-urg" onclick="irAUrgente()" title="Camiones por despachar con prioridad (toca para ir al primero)"><div class="kpi-label">⚡ Urgentes</div><div class="kpi-value" id="k-urgentes">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Camiones hoy</div><div class="kpi-value" id="k-hoy">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Cargados</div><div class="kpi-value" id="k-cargados">–</div></div>
     <div class="kpi-card"><div class="kpi-label">Despachados</div><div class="kpi-value" id="k-despachados">–</div></div>
@@ -1544,6 +1566,42 @@ function manFecha(){ return document.getElementById('man-fecha')?.value||addDays
 function ordsDe(c){ return (c.ordenes&&c.ordenes.length)?c.ordenes:[{}]; }
 function esDeVentas(c){ return (c.ordenes||[]).some(o=>o.ventasKey); }
 
+// ── Prioridad de despacho ──
+// Margen = días entre la fecha más temprana en que puede salir el camión (su fecha de carga, o hoy si ya se atrasó) y la fecha de entrega.
+//  · Destinos lejanos (Salinas, Oxnard, Santa Maria y alrededores; ~14 h con cruce): normal = 2 días; URGENTE si el margen es 1 día o menos.
+//  · Destinos cercanos (Yuma, Coachella, Thermal y alrededores): normal = 1 día; URGENTE si se entrega el mismo día.
+// Si el margen es menor al de urgente (ej. Salinas con entrega el mismo día) se marca "TARDE": la entrega está en riesgo.
+// Para agregar un destino: escribir una parte de su nombre, en minúsculas y sin acentos, en la lista que corresponda.
+const DEST_LEJANOS=['salinas','oxnard','santa maria','spreckles','spreckels','castroville','gonzales','gonzalez','soledad','watsonville'];
+const DEST_CERCANOS=['yuma','legacy','coachella','thermal','indio','holtville','highline','el centro','brawley','calexico','imperial'];
+function normTxt(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim(); }
+function tipoDestino(d){
+  const n=normTxt(d); if(!n) return null;
+  if(DEST_LEJANOS.some(x=>n.includes(x))) return 'lejano';
+  if(DEST_CERCANOS.some(x=>n.includes(x))) return 'cercano';
+  return null;
+}
+function diasEntre(a,b){ return Math.round((Date.parse(b+'T12:00:00')-Date.parse(a+'T12:00:00'))/86400000); }
+// Devuelve null si no aplica, o {nivel:'urgente'|'tarde', texto} con la orden más apretada del camión.
+function prioridadCamion(c,hoy){
+  if(!c||c.despachado||c.eliminado||!c.fecha) return null;
+  const sale=c.fecha<hoy?hoy:c.fecha;
+  let peor=null;
+  ordsDe(c).forEach(o=>{
+    const tipo=tipoDestino(o.destino); if(!tipo||!/^\d{4}-\d{2}-\d{2}$/.test(o.fechaEntrega||'')) return;
+    const margen=diasEntre(sale,o.fechaEntrega), limite=tipo==='lejano'?1:0;
+    if(margen>limite) return;
+    const falta=limite-margen; // 0 = urgente justo; >0 = ya no da el tiempo normal
+    if(!peor||falta>peor.falta) peor={falta,tipo,margen,destino:o.destino,entrega:o.fechaEntrega};
+  });
+  if(!peor) return null;
+  const atras=c.fecha<hoy;
+  const cuando=peor.margen<0?'fecha ya pasada':atras?(peor.margen===0?'hoy mismo (carga atrasada)':'mañana (carga atrasada)'):(peor.margen===0?'el mismo día de la carga':'al día siguiente de la carga');
+  const texto=`${peor.destino} (destino ${peor.tipo}) · entrega ${fmtEntrega(peor.entrega)}, ${cuando}`+
+    (peor.falta>0?' · la entrega está en riesgo':' · despachar lo antes posible');
+  return {nivel:peor.falta>0?'tarde':'urgente',texto};
+}
+
 const GCOLS_BASE=['cliente','so','producto','comentario','tarimas','destino','entrega','transp','caja','truck','rampa','estatus','fac','desp','cruce'];
 const GCOLS={
   pend:['cliente','so','fecha',...GCOLS_BASE.slice(2)],
@@ -1627,7 +1685,9 @@ function gCell(c,k,sec,ed){
 
 function gDetail(c,sec,ed){
   const ords=ordsDe(c), deVentas=esDeVentas(c), id=c.id;
-  let h=ventasNotice(c,ed);
+  const pr=sec==='desp'?null:prioridadCamion(c,today());
+  let h=pr?`<div class="urg-box ${pr.nivel}"><b>${pr.nivel==='tarde'?'⚠ Entrega en riesgo':'⚡ Prioridad de despacho'}:</b> ${esc(pr.texto)}</div>`:'';
+  h+=ventasNotice(c,ed);
   if(!deVentas&&ed){
     h+=`<div class="ventas-info">Camión manual: aquí puedes capturar cliente, SO, productos y destino.</div>
       <div style="max-width:800px"><div id="ords-${id}">${ords.map((o,i)=>mkOrden(id,i,o,ords.length)).join('')}</div>
@@ -1654,9 +1714,11 @@ function gDetail(c,sec,ed){
 
 function gTruckHtml(c,sec,ed){
   const cols=GCOLS[sec], open=GOPEN.has(sec+':'+c.id);
-  let h=`<tr class="g-row${open?' g-open':''}">`+cols.map(k=>{
+  const pr=sec==='desp'?null:prioridadCamion(c,today());
+  let h=`<tr class="g-row${open?' g-open':''}${pr?' g-'+pr.nivel:''}"${pr?` data-urg="1"`:''}>`+cols.map(k=>{
     let extra='';
-    if(k==='destino'&&c.ventasAviso?.fuera) extra='<span class="tag-fuera" title="Este SO ya no aparece en la hoja de ventas">No está en programa</span>';
+    if(k==='destino'&&pr) extra=`<span class="tag-urg ${pr.nivel}" title="${esc(pr.texto)}">${pr.nivel==='tarde'?'⚠ Tarde':'⚡ Urgente'}</span>`;
+    if(k==='destino'&&c.ventasAviso?.fuera) extra+='<span class="tag-fuera" title="Este SO ya no aparece en la hoja de ventas">No está en programa</span>';
     return `<td class="${gCls(k,sec)}">${gCell(c,k,sec,ed)}${extra}</td>`;
   }).join('')+'</tr>';
   if(open) h+=`<tr class="g-detail"><td colspan="${cols.length}"><div class="g-box">${gDetail(c,sec,ed)}</div></td></tr>`;
@@ -1716,7 +1778,13 @@ function gRender(){
   const badge=document.getElementById('pan-badge'); if(badge) badge.textContent=ed?'EDICIÓN':'SOLO LECTURA';
   TRK={}; DESP.forEach(c=>TRK[c.id]=c); WIN.forEach(c=>TRK[c.id]=c);
   const vivos=WIN.filter(c=>!c.eliminado);
-  const pend=vivos.filter(c=>c.fecha<hoy&&!c.despachado), hoyL=vivos.filter(c=>c.fecha===hoy), manL=vivos.filter(c=>c.fecha===man);
+  // Los camiones urgentes suben al principio de su sección (primero los "tarde"); los demás conservan su orden.
+  const peso=c=>{ const p=prioridadCamion(c,hoy); return p?(p.nivel==='tarde'?0:1):2; };
+  const urgPrimero=l=>l.map((c,i)=>({c,i,w:peso(c)})).sort((a,b)=>a.w-b.w||a.i-b.i).map(x=>x.c);
+  const pend=urgPrimero(vivos.filter(c=>c.fecha<hoy&&!c.despachado)), hoyL=urgPrimero(vivos.filter(c=>c.fecha===hoy)), manL=urgPrimero(vivos.filter(c=>c.fecha===man));
+  const urgL=[...pend,...hoyL,...manL].filter(c=>prioridadCamion(c,hoy));
+  const ku=document.getElementById('k-urgentes');
+  if(ku){ ku.textContent=winOk?urgL.length:'–'; ku.closest('.kpi-card').classList.toggle('kpi-alerta',winOk&&urgL.length>0); }
   gFill('pend',pend,ed,winOk); gFill('hoy',hoyL,ed,winOk); gFill('man',manL,ed,winOk);
   gAlinear();
   [['n-pend',pend],['n-hoy',hoyL],['n-man',manL]].forEach(([i,l])=>{ const e=document.getElementById(i); if(e) e.textContent=winOk?l.length:''; });
@@ -1756,6 +1824,13 @@ function gAlinear(){
   if(w&&w.scrollWidth>w.clientWidth+1) ths.forEach(th=>th.style.width='');
 }
 window.addEventListener('resize',()=>{ if(role==='gerente') gAlinear(); });
+
+function irAUrgente(){
+  const tr=document.querySelector('#gerente-screen tr[data-urg]');
+  if(!tr){ toast('No hay camiones urgentes por despachar','success'); return; }
+  tr.scrollIntoView({behavior:'smooth',block:'center'});
+  tr.classList.remove('g-flash'); void tr.offsetWidth; tr.classList.add('g-flash');
+}
 
 function renderTransportDetail(all){
   const groups={};
